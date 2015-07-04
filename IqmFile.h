@@ -6,6 +6,7 @@
 	Designed to be easy to use with OpenGL
 ***********************************************/
 
+// Maybe move this to a cpp file...  inlining doesn't seem worth it
 #include <string>
 #include <map>
 #include <vector>
@@ -17,9 +18,9 @@
 class IqmFile
 {
 	// Assert with message
-	static void IQMASSERT(bool cond, string msg){
+	static void IQMASSERT(bool cond, std::string msg){
 		if (cond == false){
-			cout << msg << endl;
+			std::cout << msg << std::endl;
 			exit(1);
 		}
 	}
@@ -49,8 +50,8 @@ public:
 		inline uint32_t nativeSize() const { return m_NativeSize; }
 		inline uint32_t numElems() const { return m_NativeSize >= size() ? m_NativeSize / size() : 0; }
 		inline T & operator [](uint32_t idx) const { return m_Ptr[idx]; }
-		inline vector<T> toVec() const{
-			vector<T> ret;
+		inline std::vector<T> toVec() const{
+			std::vector<T> ret;
 			for (int i = 0; i < count(); i++)
 				ret.push_back(m_Ptr[i]);
 			ret.shrink_to_fit();
@@ -193,21 +194,21 @@ private:
 	};
 
 	// Byte buffer of data
-	vector<char> m_Data;
+	std::vector<char> m_Data;
 	// Header struct
 	iqmheader * m_Header;
 	// Maps for file offsets, counts, and native sizes
-	map<IQM_T, uint32_t> ofs, num;
-	map<IQM_T, size_t> sze;
+	std::map<IQM_T, uint32_t> ofs, num;
+	std::map<IQM_T, size_t> sze;
 
 public:
-	IqmFile(string src) {
+	IqmFile(std::string src) {
 		const uint32_t IQM_VERSION = 2;
-		const string IQM_MAGIC = "INTERQUAKEMODEL";
+		const std::string IQM_MAGIC = "INTERQUAKEMODEL";
 
 		// Read the binary file, make sure we actually get data
-		ifstream vIn(src, ios::binary);
-		m_Data = vector<char>(istreambuf_iterator<char>(vIn), istreambuf_iterator<char>());
+		std::ifstream vIn(src, std::ios::binary);
+		m_Data = std::vector<char>(std::istreambuf_iterator<char>(vIn), std::istreambuf_iterator<char>());
 		IQMASSERT(m_Data.size() > IQM_MAGIC.size(), "Error: No data loaded");
 
 		// No more data needed, save / grab what we can
@@ -217,7 +218,7 @@ public:
 		// Checks
 		IQMASSERT(m_Header != nullptr, "No IQM Header loaded");
 		IQMASSERT(m_Header->version == IQM_VERSION, "IQM file version incorrect");
-		IQMASSERT(string(m_Header->magic) == IQM_MAGIC, "IQM File contained wrong magic number");
+		IQMASSERT(std::string(m_Header->magic) == IQM_MAGIC, "IQM File contained wrong magic number");
 
 		// Check if lil endian (not handled yet)
 		auto isLittleEndian = []() {
@@ -281,8 +282,8 @@ public:
 	}
 
 	// Get string from file (his format)
-	inline string getStr(uint32_t ofs_str){
-		return (ofs_str < m_Header->num_text) ? string(&m_Data[m_Header->ofs_text + ofs_str]) : string();
+	inline std::string getStr(uint32_t ofs_str){
+		return (ofs_str < m_Header->num_text) ? std::string(&m_Data[m_Header->ofs_text + ofs_str]) : std::string();
 	}
 
 	// Get Attr; can return attr of different type than native, provided the strides work out

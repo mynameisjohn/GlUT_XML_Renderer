@@ -13,6 +13,18 @@ using HandleMap = std::map < std::string, GLint >;
 
 class Shader
 {
+public:
+	class ScopedBind {
+		friend class Shader;
+	protected:
+		Shader& m_Shader;
+		ScopedBind(Shader& s) : m_Shader(s) { m_Shader.Bind(); }
+	public:
+		~ScopedBind(){ m_Shader.Unbind(); }
+	};
+	struct VBOFactory{
+		HandleMap m_attrs;
+	};
 	// Private initializer
 	int CompileAndLink();
 public:
@@ -27,7 +39,11 @@ public:
 	int PrintLog_F() const;
 	int PrintSrc_V() const;
 	int PrintSrc_F() const;
+	GLint getHandle(const std::string idx);
 	GLint operator [] (const std::string idx);
+	inline ScopedBind S_Bind(){ return ScopedBind(*this); }
+	inline HandleMap getHandleMap() { return m_Handles; }
+	VBOFactory getAttrFactory();
 private:
 	bool m_bIsBound;
 	GLuint m_Program, m_hVertShader, m_hFragShader;

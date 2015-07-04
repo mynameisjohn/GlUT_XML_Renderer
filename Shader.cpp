@@ -168,3 +168,14 @@ int Shader::PrintSrc_F() const{
 	cout << "Fragment Shader Source: \n\n" << m_FragShaderSrc << "\n\n" << endl;
 	return m_FragShaderSrc.length();
 }
+
+Shader::VBOFactory Shader::getAttrFactory(){
+	auto sBind = S_Bind();
+	HandleMap attrMap;
+	for (auto& handle : m_Handles){
+		bool isAttr = glGetAttribLocation(m_Program, handle.first.c_str()) >= 0;
+		if (isAttr)
+			attrMap.insert(handle);
+	}
+	return { attrMap };
+}

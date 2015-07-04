@@ -15,6 +15,10 @@
     <Position dim="3">a_Pos</Position>
   </Shader>
   <Geom>
-    <IqmFile>cube.iqm</IqmFile>
+    <IqmFile
+      Cr="1" Cg="1" Cb="1" Ca="1"
+      Tx="-30" Ty="-30" Tz="40"
+      Sx="60" Sy="60" Sz="60"
+      Rx="0" Ry="0" Rz="1" R="0">cube.iqm</IqmFile>
   </Geom>
 </Scene>

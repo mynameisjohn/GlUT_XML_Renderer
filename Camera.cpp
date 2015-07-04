@@ -1,6 +1,8 @@
 #include "Camera.h"
 #include <gtx/transform.hpp>
 
+GLint Camera::s_ProjHandle(-1);
+
 Camera::Camera()
 	:m_m4Proj(1)
 {
@@ -11,7 +13,7 @@ Camera::~Camera()
 }
 
 Camera::Camera(glm::vec2 X, glm::vec2 Y, glm::vec2 Z)
-	:m_m4Proj(glm::ortho(X[0], X[1], Y[0], Y[1], Z[0], Z[1]))
+	: m_m4Proj(glm::ortho(X[0], X[1], Y[0], Y[1], Z[0], Z[1]))
 {
 }
 
