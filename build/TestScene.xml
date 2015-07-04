@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Scene>
+  <Camera
+    type="Ortho"
+    left="-100"
+    right="100"
+    bottom="-100"
+    top="100"
+    near="10"
+    far="100">
+  </Camera>
+  <Shader
+    vert="vert.glsl"
+    frag="frag.glsl">
+    <Position dim="3">a_Pos</Position>
+  </Shader>
+  <Geom>
+    <IqmFile>cube.iqm</IqmFile>
+  </Geom>
+</Scene>
