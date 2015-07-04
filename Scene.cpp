@@ -71,13 +71,14 @@ Scene::Scene(string XmlSrc){
 		cout << "Error: no attributes found in shader" << endl;
 		exit(8);
 	}
+	// Bind shader, create GPU assets for geometry
+	auto sBind = m_Shader.S_Bind();
+
 	// Grab MV, P handles (make this better)
 	GLint MVHandle = m_Shader["MV"], PHandle = m_Shader["P"];
 	Camera::setProjHandle(PHandle);
 	Geometry::setMVHandle(MVHandle);
 
-	// Bind shader, create GPU assets for geometry
-	auto sBind = m_Shader.S_Bind();
 	for (auto el = elGeom->FirstChildElement(); el; el = el->NextSiblingElement()){
 		Geometry g;
 		string fileName = getGeom(*el, g);
@@ -91,7 +92,7 @@ Scene::~Scene()
 }
 
 int Scene::Draw(){
-	m_Shader.Bind();
+	auto sBind = m_Shader.S_Bind();
 	glUniformMatrix4fv(m_Camera.getProjHandle(), 1, GL_FALSE, (const GLfloat *)m_Camera.getProjPtr());
 	for (auto& geom : m_vGeometry){
 		glUniformMatrix4fv(Geometry::getMVHandle(), 1, GL_FALSE, (const GLfloat *)geom.getMVPtr());
@@ -99,7 +100,6 @@ int Scene::Draw(){
 		glDrawElements(GL_TRIANGLES, geom.getNumIdx(), GL_UNSIGNED_INT, NULL);
 	}
 	glBindVertexArray(0);
-	m_Shader.Unbind();
 
 	return m_vGeometry.size();
 }
@@ -182,7 +182,7 @@ static void createGPUAssets(IqmTypeMap iqmTypes, Geometry& geom, string fileName
 		//Disable?
 	};
 	GLuint VAO(0), bIdx(0), nIndices(0);
-	vector<GLuint> bufVBO(iqmTypes.size());
+	vector<GLuint> bufVBO(iqmTypes.size() + 1);
 
 	glGenVertexArrays(1, &VAO);
 	glBindVertexArray(VAO);
@@ -206,6 +206,10 @@ static void createGPUAssets(IqmTypeMap iqmTypes, Geometry& geom, string fileName
 		}
 	}
 
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bufVBO[bIdx]);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, idx.numBytes(), idx.ptr(), GL_STATIC_DRAW);
+
+	geom.setNumIndices(idx.count());
 	geom.setVAO(VAO);
 
 	glBindVertexArray(0);

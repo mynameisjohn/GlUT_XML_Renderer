@@ -21,6 +21,7 @@ public:
 	inline void leftMultMV(glm::mat4& lhs){ m_m4MV = lhs * m_m4MV; }
 	inline void setColor(glm::vec4& C){ m_v4Color = C; }
 	void setVAO(GLuint VAO);
+	inline void setNumIndices(GLuint nIndices) { m_nIdx = nIndices; }
 private:
 	GLuint m_uVAO;
 	GLuint m_nIdx;

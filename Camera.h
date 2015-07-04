@@ -8,6 +8,11 @@ class Camera
 {
 	friend class Scene;
 public:
+	enum Type {
+		ORTHO,
+		PERSP,
+		NIL
+	};
 	Camera();
 	~Camera();
 	Camera(glm::vec2 X, glm::vec2 Y, glm::vec2 Z);
@@ -16,14 +21,9 @@ public:
 	inline glm::mat4 * getProjPtr() { return &m_m4Proj; }
 	static inline GLint getProjHandle(){ return s_ProjHandle; }
 private:
+	Type m_Type;
 	glm::mat4 m_m4Proj;
 	static GLint s_ProjHandle;
-public:
-	enum Type {
-		ORTHO,
-		PERSP,
-		NIL
-	};
 protected:
 	static inline void setProjHandle(GLint p){ s_ProjHandle = p; }
 };
