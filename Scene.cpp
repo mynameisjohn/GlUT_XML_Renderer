@@ -25,7 +25,8 @@ static Camera::Type getCamera(XMLElement& elCam, Camera& cam);
 static void createGPUAssets(IqmTypeMap iqmTypes, Geometry& geom, string fileName);
 
 // tinyxml returns null if not found; my attempt at handling it here
-static inline float safeAtoF(const char * buf){
+static inline float safeAtoF(XMLElement& el, string query){
+	const char * buf = el.Attribute(query.c_str());
 	if (buf)
 		return atof(buf);
 	else{
@@ -107,11 +108,11 @@ int Scene::Draw(){
 static string getGeom(XMLElement& elGeom, Geometry& geom){
 
 	// Get Color, Translate, Scale, Rotate from XML - Could easily segfault here...
-	vec4 C(safeAtoF(elGeom.Attribute("Cr")), safeAtoF(elGeom.Attribute("Cg")), safeAtoF(elGeom.Attribute("Cb")), safeAtoF(elGeom.Attribute("Ca")));
-	vec3 T(safeAtoF(elGeom.Attribute("Tx")), safeAtoF(elGeom.Attribute("Ty")), safeAtoF(elGeom.Attribute("Tz")));
-	vec3 S(safeAtoF(elGeom.Attribute("Sx")), safeAtoF(elGeom.Attribute("Sy")), safeAtoF(elGeom.Attribute("Sz")));
-	vec3 R(safeAtoF(elGeom.Attribute("Rx")), safeAtoF(elGeom.Attribute("Ry")), safeAtoF(elGeom.Attribute("Rz")));
-	float rot = safeAtoF(elGeom.Attribute("R"));
+	vec4 C(safeAtoF(elGeom, "Cr"), safeAtoF(elGeom, "Cg"), safeAtoF(elGeom, "Cb"), safeAtoF(elGeom, "Ca"));
+	vec3 T(safeAtoF(elGeom, "Tx"), safeAtoF(elGeom, "Ty"), safeAtoF(elGeom, "Tz"));
+	vec3 S(safeAtoF(elGeom, "Sx"), safeAtoF(elGeom, "Sy"), safeAtoF(elGeom, "Sz"));
+	vec3 R(safeAtoF(elGeom, "Rx"), safeAtoF(elGeom, "Ry"), safeAtoF(elGeom, "Rz"));
+	float rot = safeAtoF(elGeom, ("R"));
 	mat4 MV = glm::translate(T) * glm::rotate(rot, R) * glm::scale(S);
 
 	geom.setColor(C);
@@ -125,7 +126,7 @@ static string getGeom(XMLElement& elGeom, Geometry& geom){
 
 static IqmTypeMap getShader(XMLElement& elShade, Shader& shader){
 	IqmTypeMap ret;
-	
+
 	// Also check to see if all variables described in XML are present
 	string vSrc(elShade.Attribute("vert")), fSrc(elShade.Attribute("frag"));
 	shader = Shader(vSrc, fSrc);
@@ -162,9 +163,9 @@ static Camera::Type getCamera(XMLElement& elCam, Camera& cam){
 	}
 
 	// Get scene dims, set up camera
-	vec2 LR(safeAtoF(elCam.Attribute("left")), safeAtoF(elCam.Attribute("right")));
-	vec2 BT(safeAtoF(elCam.Attribute("bottom")), safeAtoF(elCam.Attribute("top")));
-	vec2 NF(safeAtoF(elCam.Attribute("near")), safeAtoF(elCam.Attribute("far")));
+	vec2 LR(safeAtoF(elCam, "left"), safeAtoF(elCam, "right"));
+	vec2 BT(safeAtoF(elCam, "bottom"), safeAtoF(elCam, "top"));
+	vec2 NF(safeAtoF(elCam, "near"), safeAtoF(elCam, "far"));
 	cam = Camera(LR, BT, NF);
 
 	return Camera::Type::ORTHO;
@@ -200,7 +201,7 @@ static void createGPUAssets(IqmTypeMap iqmTypes, Geometry& geom, string fileName
 			GLuint dim = pos.nativeSize() / sizeof(float);
 			makeVBO(bufVBO[bIdx++], it->second, pos.ptr(), pos.numBytes(), dim, GL_FLOAT);
 		}
-			break;
+		break;
 		default:
 			it = iqmTypes.erase(it);
 		}
