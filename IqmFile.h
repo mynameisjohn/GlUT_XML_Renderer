@@ -77,10 +77,8 @@ public:
 			return m_File.getPtr<T>(C);
 		}
 		inline std::vector<T> toVec() const{
-			std::vector<T> ret;
-			T * buf = ptr();
-			for (int i = 0; i < count(); i++)
-				ret.push_back(buf[i]);
+			std::vector<T> ret(count());
+			memcpy_s(ret.data(), numBytes(), ptr(), numBytes());
 			ret.shrink_to_fit();
 			return ret;
 		}
