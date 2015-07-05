@@ -227,18 +227,31 @@ private:
 public:
 	// I think I can declare these with a template rather than a macro...
 #define IQMATTRFNGENMACRO(N,C,fn) template <typename T = N> inline IqmAttr<N, C, T> fn(){ return getAttr<N, C, T>(); }
+	// Returns Position Attr
 	IQMATTRFNGENMACRO(iqmposition, IQM_T::POSITION, Positions);
+	// Returns Tex Coord Attr
 	IQMATTRFNGENMACRO(iqmtexcoord, IQM_T::TEXCOORD, TexCoords);
+	// Returns Normals Attr
 	IQMATTRFNGENMACRO(iqmnormal, IQM_T::NORMAL, Normals);
+	// Returns Tangents Attr
 	IQMATTRFNGENMACRO(iqmnormal, IQM_T::TANGENT, Tangents);
+	// Returns Blend Indices Attr
 	IQMATTRFNGENMACRO(iqmnormal, IQM_T::BLENDINDEXES, BlendIndices);
+	// Returns Blend Weights Attr
 	IQMATTRFNGENMACRO(iqmnormal, IQM_T::BLENDWEIGHTS, BlendWeights);
+	// Returns Meshes
 	IQMATTRFNGENMACRO(iqmmesh, IQM_T::MESH, Meshes);
+	// Returns Triangles (Geometry Indices)
 	IQMATTRFNGENMACRO(iqmtriangle, IQM_T::TRI, Triangles);
+	// Returns Joints
 	IQMATTRFNGENMACRO(iqmjoint, IQM_T::JOINT, Joints);
+	// Returns anims
 	IQMATTRFNGENMACRO(iqmanim, IQM_T::ANIM, Anims);
+	// Returns frames
 	IQMATTRFNGENMACRO(uint16_t, IQM_T::FRAME, Frames);
-	inline IqmAttr<iqmtriangle, IQM_T::TRI, uint32_t> Indices(){ return getAttr<iqmtriangle, IQM_T::TRI, uint32_t>(); }
+	// Returns triangles as uint32_t rather than iqmtriangle
+	auto Indices()->decltype(Triangles<uint32_t>()){ return Triangles<uint32_t>(); }
+	// Get # of frames
 	inline uint32_t getNumFrames() { return m_Header->num_frames; }
 };
 
