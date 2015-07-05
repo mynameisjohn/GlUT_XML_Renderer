@@ -17,10 +17,11 @@
 
 class IqmFile
 {
-private:
 	// Forwards
-	struct iqmheader;
+public:
 	enum class IQM_T : uint32_t;
+private:
+	struct iqmheader;
 
 	// Class members
 	// Byte buffer of data
@@ -41,7 +42,7 @@ public:
 protected:
 	inline uint32_t getNum(IQM_T c) const { return num.at(c); };
 	template <typename T = uint8_t>
-	inline T * getPtr(IQM_T c) const { return (T *)&(ofs.at(c)); }
+	inline T * getPtr(IQM_T c) const { return (T *)&m_Data[ofs.at(c)]; }
 
 	// Public accessor class
 	friend class IqmAttr;
@@ -77,8 +78,9 @@ public:
 		}
 		inline std::vector<T> toVec() const{
 			std::vector<T> ret;
+			T * buf = ptr();
 			for (int i = 0; i < count(); i++)
-				ret.push_back(m_Ptr[i]);
+				ret.push_back(buf[i]);
 			ret.shrink_to_fit();
 			return ret;
 		}
@@ -232,11 +234,11 @@ public:
 	IQMATTRFNGENMACRO(iqmnormal, IQM_T::BLENDINDEXES, BlendIndices);
 	IQMATTRFNGENMACRO(iqmnormal, IQM_T::BLENDWEIGHTS, BlendWeights);
 	IQMATTRFNGENMACRO(iqmmesh, IQM_T::MESH, Meshes);
-	IQMATTRFNGENMACRO(uint32_t, IQM_T::TRI, Indices);
 	IQMATTRFNGENMACRO(iqmtriangle, IQM_T::TRI, Triangles);
 	IQMATTRFNGENMACRO(iqmjoint, IQM_T::JOINT, Joints);
 	IQMATTRFNGENMACRO(iqmanim, IQM_T::ANIM, Anims);
 	IQMATTRFNGENMACRO(uint16_t, IQM_T::FRAME, Frames);
+	inline IqmAttr<iqmtriangle, IQM_T::TRI, uint32_t> Indices(){ return getAttr<iqmtriangle, IQM_T::TRI, uint32_t>(); }
 	inline uint32_t getNumFrames() { return m_Header->num_frames; }
 };
 

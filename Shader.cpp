@@ -7,10 +7,10 @@ using namespace std;
 
 // Basics
 Shader::Shader()
-	: m_Program(0),
+	: m_bIsBound(false),
+	m_Program(0),
 	m_hVertShader(0), 
-	m_hFragShader(0),
-	m_bIsBound(false)
+	m_hFragShader(0)
 {
 }
 

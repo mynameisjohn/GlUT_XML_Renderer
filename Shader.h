@@ -46,7 +46,9 @@ public:
 	VBOFactory getAttrFactory();
 private:
 	bool m_bIsBound;
-	GLuint m_Program, m_hVertShader, m_hFragShader;
+	GLuint m_Program;
+	GLuint m_hVertShader;
+	GLuint m_hFragShader;
 	std::string m_VertShaderSrc, m_FragShaderSrc;
 	HandleMap m_Handles;
 };

@@ -6,6 +6,7 @@ set(CMAKE_CXX_FLAGS "-std=c++11 -Wall")
 
 add_definitions(-DFREEGLUT_STATIC)
 add_definitions(-DGLEW_STATIC)
+add_definitions(-DGLM_FORCE_RADIANS)
 
 find_package(OpenGL)
 find_package(GLEW)
@@ -21,9 +22,9 @@ if(!GLEW_FOUND)
 	set(GLUT_INCLUDE_DIR $ENV{SDK}/glew/include )
 endif(!GLEW_FOUND)
 
-set(GLM_DIR $ENV{SDK}/glm)
+set(GLM_DIR /usr/include/glm)
 
-set(SOURCES tinyxml2.cpp Shader.cpp Scene.cpp main.cpp Geometry.cpp Camera.cpp)
+set(SOURCES tinyxml2.cpp Shader.cpp Scene.cpp main.cpp Geometry.cpp Camera.cpp IqmFile.cpp)
 set(GL_LIBS ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES} ${GLUT_LIBRARIES})
 set(GL_INC ${OPENGL_INCLUDE_DIR} ${GLEW_INCLUDE_DIRS} ${GLUT_INCLUDE_DIR})
 

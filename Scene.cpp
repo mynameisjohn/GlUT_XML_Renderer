@@ -191,8 +191,8 @@ static void createGPUAssets(IqmTypeMap iqmTypes, Geometry& geom, string fileName
 
 	glGenBuffers(bufVBO.size(), bufVBO.data());
 
-	auto idx = iqmFile.Triangles();
-	nIndices = 3*idx.count();
+	auto idx = iqmFile.Indices();
+	nIndices = idx.count();
 
 	for (auto it = iqmTypes.cbegin(); it != iqmTypes.cend(); ++it){
 		switch (it->first){
