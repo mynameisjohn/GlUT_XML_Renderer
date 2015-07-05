@@ -174,6 +174,7 @@ static Camera::Type getCamera(XMLElement& elCam, Camera& cam){
 // Caller must bind shader (SBind could be an arg...) (does it have to be bound?)
 static void createGPUAssets(IqmTypeMap iqmTypes, Geometry& geom, string fileName){
 	IqmFile iqmFile(fileName);
+	
 	auto makeVBO = []
 		(GLuint buf, GLint handle, void * ptr, GLsizeiptr numBytes, GLuint dim, GLuint type){
 		glBindBuffer(GL_ARRAY_BUFFER, buf);

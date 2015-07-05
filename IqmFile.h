@@ -4,7 +4,7 @@
 	My crazy object oriented take on IQM
 	Loads in a file, gives accessors via IqmData
 	Designed to be easy to use with OpenGL
-***********************************************/
+	***********************************************/
 
 // Maybe move this to a cpp file...  inlining doesn't seem worth it
 #include <string>
@@ -17,39 +17,64 @@
 
 class IqmFile
 {
-	// Assert with message
-	static void IQMASSERT(bool cond, std::string msg){
-		if (cond == false){
-			std::cout << msg << std::endl;
-			exit(1);
-		}
-	}
+private:
+	// Forwards
+	struct iqmheader;
+	enum class IQM_T : uint32_t;
+
+	// Class members
+	// Byte buffer of data
+	std::vector<char> m_Data;
+	// Header struct
+	iqmheader * m_Header;
+	// Maps for file ptr offsets and counts
+	std::map<IQM_T, uint32_t> ofs, num;
 
 public:
-	// Accessor class
-	template <class T = uint8_t>
-	//TODO: Make iqmdata iterable somehow 
-	class iqmdata{
+	// Source constructor
+	IqmFile(std::string src);
+
+	// Get string from file (his format)
+	std::string getStr(uint32_t ofs_str);
+
+	// Protected accessor methods
+protected:
+	inline uint32_t getNum(IQM_T c) const { return num.at(c); };
+	template <typename T = uint8_t>
+	inline T * getPtr(IQM_T c) const { return (T *)&(ofs.at(c)); }
+
+	// Public accessor class
+	friend class IqmAttr;
+public:
+	template <typename N, IqmFile::IQM_T C, typename T = N>
+	class IqmAttr{
 		friend class IqmFile;
-		T * m_Ptr;               // Pointer to data
-		uint32_t m_Num;          // Number of elements in file
-		uint32_t m_NativeSize;   // Native size of data type
+		const IqmFile& m_File;
 	protected:
-		//We've already asserted that sizeof(T)%nativesize == 0, hopefully
-		iqmdata(T * ptr, uint32_t num, uint32_t sze)
-			: m_Ptr(ptr), m_Num(num), m_NativeSize(sze)
+		IqmAttr(IqmFile& file)
+			: m_File(file)
 		{
-			IQMASSERT(ptr && num && sze && (sze*num) % sizeof(T) == 0, "Error creating IQM Attr");
-			if (sizeof(T) != m_NativeSize)
-				m_Num = (sze*num) / sizeof(T);
+			static_assert(!(sizeof(T) % sizeof(N)) || !(sizeof(N) % sizeof(T)), "IQM Error: In order to create an IqmAttr, the Native Type must divide evenly into sizeof(N) / sizeof(T) units, or vice versa.");
 		}
 	public:
-		inline T * ptr() const { return m_Ptr; }
-		inline uint32_t count() const { return m_Num; }
-		inline uint32_t numBytes() const { return m_Num*sizeof(T); }
-		inline uint32_t nativeSize() const { return m_NativeSize; }
-		inline uint32_t numElems() const { return m_NativeSize >= size() ? m_NativeSize / size() : 0; }
-		inline T & operator [](uint32_t idx) const { return m_Ptr[idx]; }
+		inline uint32_t count() const{
+			return (sizeof(N) * m_File.getNum(C)) / sizeof(T);
+		}
+		inline uint32_t numBytes() const{
+			return count() * sizeof(T);
+		}
+		inline uint32_t dim() const{
+			return sizeof(N) >= sizeof(T) ? sizeof(N) / sizeof(T) : 0;
+		}
+		inline size_t size() const{
+			return sizeof(T);
+		}
+		inline size_t nativeSize() const{
+			return sizeof(N);
+		}
+		inline T * ptr() const{
+			return m_File.getPtr<T>(C);
+		}
 		inline std::vector<T> toVec() const{
 			std::vector<T> ret;
 			for (int i = 0; i < count(); i++)
@@ -57,11 +82,15 @@ public:
 			ret.shrink_to_fit();
 			return ret;
 		}
-		//I'm so cool
-		inline auto size() const -> decltype(sizeof(T)){ return sizeof(T); }
 	};
+	// Get Attr; can return attr of different type than native, provided the strides work out
+	template <typename N, IqmFile::IQM_T C, typename T = N>
+	inline IqmAttr<N, C, T> getAttr(){
+		return IqmAttr<N, C, T>(*this);
+	}
 
-	// All of these structs are his; the binary file consists of these
+public:
+	// Various structs used in IQM, left public
 	struct iqmmesh
 	{
 		unsigned int name;
@@ -149,8 +178,8 @@ public:
 		CUSTOM = 0x10
 	};
 
+	// structs and enums needed when loading the file
 private:
-	// Same with these
 	enum class IQMPRIM : uint32_t
 	{
 		IQM_BYTE = 0,
@@ -193,122 +222,21 @@ private:
 		uint32_t offset;
 	};
 
-	// Byte buffer of data
-	std::vector<char> m_Data;
-	// Header struct
-	iqmheader * m_Header;
-	// Maps for file offsets, counts, and native sizes
-	std::map<IQM_T, uint32_t> ofs, num;
-	std::map<IQM_T, size_t> sze;
-
 public:
-	IqmFile(std::string src) {
-		const uint32_t IQM_VERSION = 2;
-		const std::string IQM_MAGIC = "INTERQUAKEMODEL";
-
-		// Read the binary file, make sure we actually get data
-		std::ifstream vIn(src, std::ios::binary);
-		m_Data = std::vector<char>(std::istreambuf_iterator<char>(vIn), std::istreambuf_iterator<char>());
-		IQMASSERT(m_Data.size() > IQM_MAGIC.size(), "Error: No data loaded");
-
-		// No more data needed, save / grab what we can
-		m_Data.shrink_to_fit();
-		m_Header = (iqmheader *)(m_Data.data());
-
-		// Checks
-		IQMASSERT(m_Header != nullptr, "No IQM Header loaded");
-		IQMASSERT(m_Header->version == IQM_VERSION, "IQM file version incorrect");
-		IQMASSERT(std::string(m_Header->magic) == IQM_MAGIC, "IQM File contained wrong magic number");
-
-		// Check if lil endian (not handled yet)
-		auto isLittleEndian = []() {
-			union { int i; uint8_t b[sizeof(int)]; } conv;
-			conv.i = 1;
-			return conv.b[0] != 0;
-		};
-
-		//What do I do with this?
-		bool littleEndian(isLittleEndian());
-
-		// Insert into the map
-		auto add = [&](IQM_T c, uint32_t n, uint32_t o, uint32_t s){
-			num[c] = n;
-			ofs[c] = o;
-			sze[c] = s;
-		};
-
-		// Grab these things
-		add(IQM_T::MESH, m_Header->num_meshes, m_Header->ofs_meshes, sizeof(iqmmesh));
-		add(IQM_T::TRI, m_Header->num_triangles, m_Header->ofs_triangles, sizeof(iqmtriangle));
-		add(IQM_T::JOINT, m_Header->num_joints, m_Header->ofs_joints, sizeof(iqmjoint));
-		add(IQM_T::POSE, m_Header->num_poses, m_Header->ofs_poses, sizeof(iqmpose));
-		add(IQM_T::ANIM, m_Header->num_anims, m_Header->ofs_anims, sizeof(iqmanim));
-		add(IQM_T::VARRAY, m_Header->num_vertexarrays, m_Header->ofs_vertexarrays, sizeof(iqmvertexarray));
-		add(IQM_T::FRAME, m_Header->num_frames*m_Header->num_framechannels, m_Header->ofs_frames, sizeof(uint16_t));
-
-		// Loop through all vertex arrays
-		iqmvertexarray * vArrs((iqmvertexarray *)&m_Data[m_Header->ofs_vertexarrays]);
-		for (uint32_t i = 0; i < m_Header->num_vertexarrays; i++){
-			iqmvertexarray & va(vArrs[i]);
-			uint32_t size;
-			switch ((IQM_T)va.type){
-			case IQM_T::POSITION:
-				IQMASSERT((IQMPRIM)va.format == IQMPRIM::IQM_FLOAT, "Error: Type of vertex attribute incorrect, expected a float");
-				size = sizeof(iqmposition);
-				break;
-			case IQM_T::NORMAL:
-				IQMASSERT((IQMPRIM)va.format == IQMPRIM::IQM_FLOAT, "Error: Type of vertex attribute incorrect, expected a float");
-				size = sizeof(iqmnormal);
-				break;
-			case IQM_T::TANGENT:
-				IQMASSERT((IQMPRIM)va.format == IQMPRIM::IQM_FLOAT, "Error: Type of vertex attribute incorrect, expected a float");
-				size = sizeof(iqmtangent);
-				break;
-			case IQM_T::TEXCOORD:
-				IQMASSERT((IQMPRIM)va.format == IQMPRIM::IQM_FLOAT, "Error: Type of vertex attribute incorrect, expected a float");
-				size = sizeof(iqmtexcoord);
-				break;
-			case IQM_T::BLENDINDEXES:
-				IQMASSERT((IQMPRIM)va.format == IQMPRIM::IQM_UBYTE, "Error: Type of vertex attribute incorrect, expected a byte");
-				size = sizeof(iqmblendidx);
-				break;
-			case IQM_T::BLENDWEIGHTS:
-				IQMASSERT((IQMPRIM)va.format == IQMPRIM::IQM_UBYTE, "Error: Type of vertex attribute incorrect, expected a byte");
-				size = sizeof(iqmblendweight);
-				break;
-			}
-			add((IQM_T)va.type, m_Header->num_vertexes, va.offset, size);
-		}
-	}
-
-	// Get string from file (his format)
-	inline std::string getStr(uint32_t ofs_str){
-		return (ofs_str < m_Header->num_text) ? std::string(&m_Data[m_Header->ofs_text + ofs_str]) : std::string();
-	}
-
-	// Get Attr; can return attr of different type than native, provided the strides work out
-	template <typename T = uint8_t>
-	inline iqmdata<T> getAttr(IQM_T code){
-		// TODO: static assert
-		IQMASSERT((sze[code] * num[code]) % sizeof(T) == 0 && m_Header,
-			"Error: Type requested in getAttr does not evenly span the range of data.");
-		return iqmdata<T>((T *)(&m_Data[ofs.at(code)]), num.at(code), sze.at(code));
-	}
-
-	// Useful getters
-	inline iqmdata<iqmposition> Positions(){ return getAttr<iqmposition>(IQM_T::POSITION); }
-	inline iqmdata<iqmtexcoord> TexCoords(){ return getAttr<iqmtexcoord>(IQM_T::TEXCOORD); }
-	inline iqmdata<iqmnormal> Normals(){ return getAttr<iqmnormal>(IQM_T::NORMAL); }
-	inline iqmdata<iqmtangent> Tangents(){ return getAttr<iqmtangent>(IQM_T::TANGENT); }
-	inline iqmdata<iqmblendidx> BlendIndices(){ return getAttr<iqmblendidx>(IQM_T::BLENDINDEXES); }
-	inline iqmdata<iqmblendweight> BlendWeights(){ return getAttr<iqmblendweight>(IQM_T::BLENDWEIGHTS); }
-	inline iqmdata<iqmmesh> Meshes(){ return getAttr<iqmmesh>(IQM_T::MESH); }
-	inline iqmdata<uint32_t> Indices(){ return getAttr<uint32_t>(IQM_T::TRI); }
-	inline iqmdata<iqmtriangle> Triangles(){ return getAttr<iqmtriangle>(IQM_T::TRI); }
-	inline iqmdata<iqmjoint> Joints(){ return getAttr<iqmjoint>(IQM_T::JOINT); }
-	inline iqmdata<iqmpose> Poses(){ return getAttr<iqmpose>(IQM_T::POSE); }
-	inline iqmdata<iqmanim> Anims(){ return getAttr<iqmanim>(IQM_T::ANIM); }
-	inline iqmdata<uint16_t> Frames(){ return getAttr<uint16_t>(IQM_T::FRAME); }
+	// I think I can declare these with a template rather than a macro...
+#define IQMATTRFNGENMACRO(N,C,fn) template <typename T = N> inline IqmAttr<N, C, T> fn(){ return getAttr<N, C, T>(); }
+	IQMATTRFNGENMACRO(iqmposition, IQM_T::POSITION, Positions);
+	IQMATTRFNGENMACRO(iqmtexcoord, IQM_T::TEXCOORD, TexCoords);
+	IQMATTRFNGENMACRO(iqmnormal, IQM_T::NORMAL, Normals);
+	IQMATTRFNGENMACRO(iqmnormal, IQM_T::TANGENT, Tangents);
+	IQMATTRFNGENMACRO(iqmnormal, IQM_T::BLENDINDEXES, BlendIndices);
+	IQMATTRFNGENMACRO(iqmnormal, IQM_T::BLENDWEIGHTS, BlendWeights);
+	IQMATTRFNGENMACRO(iqmmesh, IQM_T::MESH, Meshes);
+	IQMATTRFNGENMACRO(uint32_t, IQM_T::TRI, Indices);
+	IQMATTRFNGENMACRO(iqmtriangle, IQM_T::TRI, Triangles);
+	IQMATTRFNGENMACRO(iqmjoint, IQM_T::JOINT, Joints);
+	IQMATTRFNGENMACRO(iqmanim, IQM_T::ANIM, Anims);
+	IQMATTRFNGENMACRO(uint16_t, IQM_T::FRAME, Frames);
 	inline uint32_t getNumFrames() { return m_Header->num_frames; }
 };
 
