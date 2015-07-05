@@ -191,8 +191,8 @@ static void createGPUAssets(IqmTypeMap iqmTypes, Geometry& geom, string fileName
 
 	glGenBuffers(bufVBO.size(), bufVBO.data());
 
-	auto idx = iqmFile.Indices();
-	nIndices = idx.count();
+	auto idx = iqmFile.Triangles();
+	nIndices = 3*idx.count();
 
 	for (auto it = iqmTypes.cbegin(); it != iqmTypes.cend(); ++it){
 		switch (it->first){
@@ -211,7 +211,7 @@ static void createGPUAssets(IqmTypeMap iqmTypes, Geometry& geom, string fileName
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bufVBO[bIdx]);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, idx.numBytes(), idx.ptr(), GL_STATIC_DRAW);
 
-	geom.setNumIndices(idx.count());
+	geom.setNumIndices(nIndices);
 	geom.setVAO(VAO);
 
 	glBindVertexArray(0);

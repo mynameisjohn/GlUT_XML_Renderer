@@ -56,15 +56,15 @@ public:
 		{
 			static_assert(!(sizeof(T) % sizeof(N)) || !(sizeof(N) % sizeof(T)), "IQM Error: In order to create an IqmAttr, the Native Type must divide evenly into sizeof(N) / sizeof(T) units, or vice versa.");
 		}
+		inline uint32_t ratio() const{
+			return (sizeof(T) > sizeof(N) ? sizeof(T) / sizeof(N) : sizeof(N) / sizeof(T));
+		}
 	public:
 		inline uint32_t count() const{
-			return (sizeof(N) * m_File.getNum(C)) / sizeof(T);
+			return ratio() * m_File.getNum(C);
 		}
 		inline uint32_t numBytes() const{
 			return count() * sizeof(T);
-		}
-		inline uint32_t dim() const{
-			return sizeof(N) >= sizeof(T) ? sizeof(N) / sizeof(T) : 0;
 		}
 		inline size_t size() const{
 			return sizeof(T);
