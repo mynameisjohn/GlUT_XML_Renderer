@@ -153,7 +153,7 @@ static IqmTypeMap getShader(XMLElement& elShade, Shader& shader){
 				exit(6);
 			}
 			// Should I have the shader ensure it's an attribute?
-			ret[IqmFile::IQM_T::POSITION] = handle;
+			ret[IqmFile::IQM_POSITION] = handle;
 		}
 		else if (type.compare("Normal") == 0){
 			string var(el->GetText());
@@ -163,7 +163,7 @@ static IqmTypeMap getShader(XMLElement& elShade, Shader& shader){
 				exit(6);
 			}
 			// Should I have the shader ensure it's an attribute?
-			ret[IqmFile::IQM_T::NORMAL] = handle;
+			ret[IqmFile::IQM_NORMAL] = handle;
 		}
 	}
 
@@ -211,36 +211,36 @@ static Light::Type getLight(XMLElement& elLight, Light& l, vec3 view){
 // Caller must bind shader (SBind could be an arg...) (does it have to be bound?)
 static void createGPUAssets(IqmTypeMap iqmTypes, Geometry& geom, string fileName){
 	IqmFile iqmFile(fileName);
-	
-	auto makeVBO = []
-		(GLuint buf, GLint handle, void * ptr, GLsizeiptr numBytes, GLuint dim, GLuint type){
-		glBindBuffer(GL_ARRAY_BUFFER, buf);
-		glBufferData(GL_ARRAY_BUFFER, numBytes, ptr, GL_STATIC_DRAW);
-		glEnableVertexAttribArray(handle);
-		glVertexAttribPointer(handle, dim, type, 0, 0, 0);
-		//Disable?
-	};
-	GLuint VAO(0), bIdx(0), nIndices(0);
-	vector<GLuint> bufVBO(iqmTypes.size() + 1);
 
-	glGenVertexArrays(1, &VAO);
-	glBindVertexArray(VAO);
+	//auto makeVBO = []
+	//	(GLuint buf, GLint handle, void * ptr, GLsizeiptr numBytes, GLuint dim, GLuint type){
+	//	glBindBuffer(GL_ARRAY_BUFFER, buf);
+	//	glBufferData(GL_ARRAY_BUFFER, numBytes, ptr, GL_STATIC_DRAW);
+	//	glEnableVertexAttribArray(handle);
+	//	glVertexAttribPointer(handle, dim, type, 0, 0, 0);
+	//	//Disable?
+	//};
+	//GLuint VAO(0), bIdx(0), nIndices(0);
+	//vector<GLuint> bufVBO(iqmTypes.size() + 1);
 
-	glGenBuffers(bufVBO.size(), bufVBO.data());
+	//glGenVertexArrays(1, &VAO);
+	//glBindVertexArray(VAO);
 
-	auto idx = iqmFile.Indices();
-	nIndices = idx.count();
+	//glGenBuffers(bufVBO.size(), bufVBO.data());
 
-	for (auto it = iqmTypes.cbegin(); it != iqmTypes.cend(); ++it){
+	//auto idx = iqmFile.Indices();
+	//nIndices = idx.count();
+
+	/*for (auto it = iqmTypes.cbegin(); it != iqmTypes.cend(); ++it){
 		switch (it->first){
-		case IqmFile::IQM_T::POSITION:
+			case IqmFile::IQM_T::POSITION:
 		{
 			auto pos = iqmFile.Positions();
 			GLuint dim = pos.nativeSize() / sizeof(float);
 			makeVBO(bufVBO[bIdx++], it->second, pos.ptr(), pos.numBytes(), dim, GL_FLOAT);
 		}
 		break;
-		case IqmFile::IQM_T::NORMAL:
+		case IqmFile::IQM_NORMAL:
 		{
 			auto nrm = iqmFile.Normals();
 			GLuint dim = nrm.nativeSize() / sizeof(float);
@@ -258,5 +258,5 @@ static void createGPUAssets(IqmTypeMap iqmTypes, Geometry& geom, string fileName
 	geom.setNumIndices(nIndices);
 	geom.setVAO(VAO);
 
-	glBindVertexArray(0);
+	glBindVertexArray(0);*/
 }
