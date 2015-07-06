@@ -17,6 +17,7 @@ public:
 	~Camera();
 	Camera(glm::vec2 X, glm::vec2 Y, glm::vec2 Z);
 	Camera(float fovy, float aspect, glm::vec2 nf);
+	glm::vec3 getView();
 	inline glm::mat4 getProj() { return m_m4Proj; }
 	inline glm::mat4 * getProjPtr() { return &m_m4Proj; }
 	static inline GLint getProjHandle(){ return s_ProjHandle; }

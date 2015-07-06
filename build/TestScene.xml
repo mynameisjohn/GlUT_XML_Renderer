@@ -1,24 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Scene>
   <Camera
-    type="Ortho"
-    left="-100"
-    right="100"
-    bottom="-100"
-    top="100"
+    type="Perspective"
+    fovy="1.57"
+    aspect="1.333333"
     near="10"
-    far="100">
+    far="-1000">
   </Camera>
   <Shader
     vert="vert.glsl"
     frag="frag.glsl">
     <Position dim="3">a_Pos</Position>
+    <Normal dim="3">a_Nrm</Normal>
   </Shader>
   <Geom>
     <IqmFile
       Cr="1" Cg="1" Cb="1" Ca="1"
-      Tx="0" Ty="0" Tz="40"
+      Tx="0" Ty="0" Tz="-400"
       Sx="60" Sy="60" Sz="60"
-      Rx="0" Ry="0" Rz="1" R="0">cube.iqm</IqmFile>
+      Rx="0" Ry="0" Rz="1" R="0">sphere.iqm</IqmFile>
   </Geom>
+  <Light>
+    <Directional
+      pX="100" pY="100" pZ="100"
+      dX="-1" dY="0" dZ="0"
+      iR="1" iG="1" iB="1"
+      >
+    </Directional>
+  </Light>
 </Scene>

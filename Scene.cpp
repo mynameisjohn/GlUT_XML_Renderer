@@ -22,6 +22,7 @@ using IqmTypeMap = map < IqmFile::IQM_T, GLint > ;
 static string getGeom(XMLElement& elGeom, Geometry& geom);
 static IqmTypeMap getShader(XMLElement& elShade, Shader& shader);
 static Camera::Type getCamera(XMLElement& elCam, Camera& cam);
+static Light::Type getLight(XMLElement& elLight, Light& l, vec3 view);
 static void createGPUAssets(IqmTypeMap iqmTypes, Geometry& geom, string fileName);
 
 // tinyxml returns null if not found; my attempt at handling it here
@@ -60,12 +61,16 @@ Scene::Scene(string XmlSrc){
 	XMLElement * elCam = check("Camera", elScene);
 	XMLElement * elShade = check("Shader", elScene);
 	XMLElement * elGeom = check("Geom", elScene);
+	XMLElement * elLight = check("Light", elScene);
 
 	Camera::Type camType = getCamera(*elCam, m_Camera);
 	if (camType == Camera::Type::NIL){
 		cout << "Error creating Camera" << endl;
 		exit(7);
 	}
+
+	Light l;
+	getLight(*elLight, l, m_Camera.getView());
 
 	IqmTypeMap iqmTypes = getShader(*elShade, m_Shader);
 	if (iqmTypes.empty()){
@@ -74,6 +79,11 @@ Scene::Scene(string XmlSrc){
 	}
 	// Bind shader, create GPU assets for geometry
 	auto sBind = m_Shader.S_Bind();
+
+	auto lD = m_Shader["L.dir"];
+	auto lI = m_Shader["L.intensity"];
+	glUniform3f(lD, l.m_Dir[0], l.m_Dir[1], l.m_Dir[2]);
+	glUniform3f(lI, l.m_Intensity[0], l.m_Intensity[1], l.m_Intensity[2]);
 
 	// Grab MV, P handles (make this better)
 	GLint MVHandle = m_Shader["MV"], PHandle = m_Shader["P"];
@@ -145,6 +155,16 @@ static IqmTypeMap getShader(XMLElement& elShade, Shader& shader){
 			// Should I have the shader ensure it's an attribute?
 			ret[IqmFile::IQM_T::POSITION] = handle;
 		}
+		else if (type.compare("Normal") == 0){
+			string var(el->GetText());
+			GLint handle = shader[var];
+			if (handle < 0){
+				cout << "Something bad" << endl;
+				exit(6);
+			}
+			// Should I have the shader ensure it's an attribute?
+			ret[IqmFile::IQM_T::NORMAL] = handle;
+		}
 	}
 
 	return ret;
@@ -159,6 +179,10 @@ static Camera::Type getCamera(XMLElement& elCam, Camera& cam){
 			return Camera::Type::NIL;
 
 		// Handle persp case
+		float fovy = safeAtoF(elCam, "fovy");
+		float aspect = safeAtoF(elCam, "aspect");
+		vec2 NF(safeAtoF(elCam, "near"), safeAtoF(elCam, "far"));
+		cam = Camera(fovy, aspect, NF);
 		return Camera::Type::PERSP;
 	}
 
@@ -169,6 +193,19 @@ static Camera::Type getCamera(XMLElement& elCam, Camera& cam){
 	cam = Camera(LR, BT, NF);
 
 	return Camera::Type::ORTHO;
+}
+
+static Light::Type getLight(XMLElement& elLight, Light& l, vec3 view){
+	for (auto el = elLight.FirstChildElement(); el; el = el->NextSiblingElement()){
+		string lType(el->Value());
+		if (lType.compare("Directional") == 0){
+			vec3 pos(safeAtoF(*el, "pX"), safeAtoF(*el, "pY"), safeAtoF(*el, "pZ"));
+			vec3 dir(safeAtoF(*el, "dX"), safeAtoF(*el, "dY"), safeAtoF(*el, "dZ"));
+			vec3 intensity(safeAtoF(*el, "iR"), safeAtoF(*el, "iG"), safeAtoF(*el, "iB"));
+			l = Light(pos, dir, intensity);
+			return Light::Type::DIRECTIONAL;
+		}
+	}
 }
 
 // Caller must bind shader (SBind could be an arg...) (does it have to be bound?)
@@ -201,6 +238,13 @@ static void createGPUAssets(IqmTypeMap iqmTypes, Geometry& geom, string fileName
 			auto pos = iqmFile.Positions();
 			GLuint dim = pos.nativeSize() / sizeof(float);
 			makeVBO(bufVBO[bIdx++], it->second, pos.ptr(), pos.numBytes(), dim, GL_FLOAT);
+		}
+		break;
+		case IqmFile::IQM_T::NORMAL:
+		{
+			auto nrm = iqmFile.Normals();
+			GLuint dim = nrm.nativeSize() / sizeof(float);
+			makeVBO(bufVBO[bIdx++], it->second, nrm.ptr(), nrm.numBytes(), dim, GL_FLOAT);
 		}
 		break;
 		default:
