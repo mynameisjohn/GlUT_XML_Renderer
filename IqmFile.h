@@ -6,14 +6,10 @@
 	Designed to be easy to use with OpenGL
 	***********************************************/
 
-// Maybe move this to a cpp file...  inlining doesn't seem worth it
-#include <string>
+// Wish I didn't have to include these
 #include <map>
 #include <vector>
-#include <iostream>
 #include <stdint.h>
-#include <fstream>
-#include <stdlib.h>
 
 class IqmFile
 {
@@ -64,12 +60,13 @@ private:
 	// Convenient way to locate data within the file
 	struct IqmWaypoint
 	{	// Byte offset and count for each IQM_T
-		uint32_t ofs, num;
+		uint32_t num;
+		uint32_t ofs;
 	}; 
 	std::map<IQM_T, IqmWaypoint> m_WayPoints;
 
 	// Get waypoint from IQM type code
-	IqmWaypoint getWayPoint( IQM_T c ) const;
+	IqmWaypoint getWaypoint(IQM_T c) const;
 public:
 	// Source constructor
 	IqmFile( std::string src );
@@ -80,11 +77,16 @@ public:
 	// Protected accessor methods
 protected:
 	// Get number of IQM_T mapped types
-	uint32_t getNum( IQM_T c ) const;
+	inline uint32_t getNum(IQM_T c) const{
+		return getWaypoint(c).num;
+	}
 
 	// Get ptr to IQM_T mapped types
 	template <typename T = uint8_t>
-	T * getPtr( IQM_T c ) const;
+	inline T * getPtr(IQM_T c) const{
+		IqmWaypoint wp = getWaypoint(c);
+		return wp.ofs ? (T *)&m_Data[wp.ofs] : nullptr;
+	}
 
 	// Public accessor class, designed to help with OpenGL API calls
 	friend class IqmAttr;
@@ -121,7 +123,7 @@ public:
 		{
 			return ratio() * m_File.getNum( C );
 		}
-		// The size of count() in bytes
+		// The size of the data in bytes
 		inline uint32_t numBytes() const
 		{
 			return count() * sizeof( T );
@@ -166,11 +168,6 @@ public:
 		unsigned int first_triangle, num_triangles;
 	};
 
-	struct iqmtriangle
-	{
-		uint32_t a, b, c;
-	};
-
 	struct iqmjoint
 	{
 		unsigned int name;
@@ -205,35 +202,16 @@ public:
 		float xyradius, radius;
 	};
 
-	struct iqmposition
-	{
-		float x, y, z;
-	};
+	// Indices (triangles)
+	struct iqmtriangle{ uint32_t a, b, c; };
 
-	struct iqmtexcoord
-	{
-		float u, v;
-	};
-
-	struct iqmnormal
-	{
-		float nX, nY, nZ;
-	};
-
-	struct iqmtangent
-	{
-		float tX, tY, tZ, tW;
-	};
-
-	struct iqmblendidx
-	{
-		uint8_t bI[4];
-	};
-
-	struct iqmblendweight
-	{
-		uint8_t bW[4];
-	};
+	// Vertex attributes
+	struct iqmposition{ float x, y, z; };
+	struct iqmtexcoord{ float u, v; };
+	struct iqmnormal{ float nX, nY, nZ; };
+	struct iqmtangent{float tX, tY, tZ, tW;};
+	struct iqmblendidx{ uint8_t bI[4]; };
+	struct iqmblendweight{ uint8_t bW[4]; };
 
 	// structs and enums needed when loading the file
 private:
@@ -261,7 +239,7 @@ private:
 
 	// Convenient public access functions
 public:
-	// I think I can declare these with a template rather than a macro...
+	// I think I can declare these with a template rather than a macro... generates a specific getAttr funcion
 #define IQMATTRFNGENMACRO(N,C,fn) template <typename T = N> inline IqmAttr<N, C, T> fn(){ return getAttr<N, C, T>(); }
 	// Returns Position Attr, a float3 type
 	IQMATTRFNGENMACRO( iqmposition, IQM_T::POSITION, Positions );
@@ -270,11 +248,11 @@ public:
 	// Returns Normals Attr, a float3 type
 	IQMATTRFNGENMACRO( iqmnormal, IQM_T::NORMAL, Normals );
 	// Returns Tangents Attr, a float4 type
-	IQMATTRFNGENMACRO( iqmnormal, IQM_T::TANGENT, Tangents );
+	IQMATTRFNGENMACRO( iqmtangent, IQM_T::TANGENT, Tangents );
 	// Returns Blend Indices Attr, a uchar4 type
-	IQMATTRFNGENMACRO( iqmnormal, IQM_T::BLENDINDEXES, BlendIndices );
+	IQMATTRFNGENMACRO( iqmblendidx, IQM_T::BLENDINDEXES, BlendIndices );
 	// Returns Blend Weights Attr, a uchar4 type
-	IQMATTRFNGENMACRO( iqmnormal, IQM_T::BLENDWEIGHTS, BlendWeights );
+	IQMATTRFNGENMACRO( iqmblendweight, IQM_T::BLENDWEIGHTS, BlendWeights );
 	// Returns Meshes
 	IQMATTRFNGENMACRO( iqmmesh, IQM_T::MESH, Meshes );
 	// Returns Triangles (Geometry Indices)

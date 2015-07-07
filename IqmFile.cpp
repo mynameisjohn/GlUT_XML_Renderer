@@ -1,5 +1,8 @@
 #include "IqmFile.h"
 
+#include <string>
+#include <fstream>
+#include <iostream>
 #include <algorithm>
 using namespace std;
 
@@ -19,12 +22,13 @@ IqmFile::IqmFile( string src )
 		return conv.b[0] != 0;
 	};
 	
+	// Assert with message
 	auto IQMASSERT = [] ( bool cond, string msg )
 	{	// Assert with message
 		if ( cond == false )
 		{
 			cout << msg << endl;
-			exit( -11 );
+			exit( -1 );
 		}
 	};
 
@@ -52,34 +56,37 @@ IqmFile::IqmFile( string src )
 
 	// Grab these things
 	m_WayPoints[IQM_T::MESH] = { m_Header->num_meshes, m_Header->ofs_meshes };
-	m_WayPoints[IQM_T::TRI] = { m_Header->num_meshes, m_Header->ofs_meshes };
-	m_WayPoints[IQM_T::JOINT] = { m_Header->num_meshes, m_Header->ofs_meshes };
-	m_WayPoints[IQM_T::POSE] = { m_Header->num_meshes, m_Header->ofs_meshes };
-	m_WayPoints[IQM_T::ANIM] = { m_Header->num_meshes, m_Header->ofs_meshes };
-	m_WayPoints[IQM_T::VARRAY] = { m_Header->num_meshes, m_Header->ofs_meshes };
-	m_WayPoints[IQM_T::FRAME] = { m_Header->num_meshes, m_Header->ofs_meshes };
+	m_WayPoints[IQM_T::TRI] = { m_Header->num_triangles, m_Header->ofs_triangles };
+	m_WayPoints[IQM_T::JOINT] = { m_Header->num_joints, m_Header->ofs_joints };
+	m_WayPoints[IQM_T::POSE] = { m_Header->num_poses, m_Header->ofs_poses };
+	m_WayPoints[IQM_T::ANIM] = { m_Header->num_anims, m_Header->ofs_anims };
+	m_WayPoints[IQM_T::VARRAY] = { m_Header->num_vertexarrays, m_Header->ofs_vertexarrays };
+	m_WayPoints[IQM_T::FRAME] = { m_Header->num_frames, m_Header->ofs_frames };
 
 	// Loop through all vertex arrays
 	iqmvertexarray * vArrs( (iqmvertexarray *) &m_Data[m_Header->ofs_vertexarrays] );
 	for ( uint32_t i = 0; i < m_Header->num_vertexarrays; i++ )
 	{	// Check array type, cache info
 		iqmvertexarray & va( vArrs[i] );
-		switch ( (IQM_T) va.type )
-		{
+		IQM_T type = (IQM_T)va.type;
+		IQM_P prim = (IQM_P)va.format;
+		switch ( type )
+		{	// If it's a vertex attribute, make sure it's the right primitive type and cache it
 			case IQM_T::POSITION:
 			case IQM_T::NORMAL:
 			case IQM_T::TANGENT:
 			case IQM_T::TEXCOORD:
-				IQMASSERT( (IQM_P) va.format == IQM_P::FLOAT, "Error: Type of vertex attribute incorrect, expected a float" );
+				IQMASSERT( prim == IQM_P::FLOAT, "Error: Type of vertex attribute incorrect, expected a float" );
 				break;
 			case IQM_T::BLENDINDEXES:
 			case IQM_T::BLENDWEIGHTS:
-				IQMASSERT( (IQM_P) va.format == IQM_P::UBYTE, "Error: Type of vertex attribute incorrect, expected a byte" );
+				IQMASSERT( prim == IQM_P::UBYTE, "Error: Type of vertex attribute incorrect, expected a byte" );
+				break;
 			default:
 				// Is this OK?
 				continue;
 		}
-		m_WayPoints[(IQM_T) va.type] = { m_Header->num_vertexes, va.offset };
+		m_WayPoints[type] = { m_Header->num_vertexes, va.offset };
 	}
 }
 
@@ -90,28 +97,13 @@ string IqmFile::getStr( uint32_t ofs_str )
 }
 
 // Return waypoint from map, if it exists
-IqmFile::IqmWaypoint IqmFile::getWayPoint( IQM_T c ) const
+IqmFile::IqmWaypoint IqmFile::getWaypoint(IQM_T c) const
 {
 	auto it = m_WayPoints.find( c );
 	if ( it == m_WayPoints.end() )
 	{
-		cout << "Unable to find IQM type with code " << c << endl;
+		cout << "Unable to find IQM type with code " << uint32_t(c) << endl;
 		return{ 0, 0 };
 	}
 	return it->second;
-}
-
-// Get number of IQM_T mapped types
-uint32_t IqmFile::getNum( IQM_T c ) const
-{
-	IqmWaypoint wp = getWayPoint( c );
-	return wp.num;
-}
-
-// Get ptr to IQM_T mapped types
-template <typename T>
-T * IqmFile::getPtr( IQM_T c ) const
-{
-	IqmWaypoint wp = getWaypoint( c );
-	return wp.ofs ? (T *) &m_Data[wp.ofs] : nullptr;
 }
