@@ -24,7 +24,7 @@ static IqmTypeMap getShader(XMLElement& elShade, Shader& shader);
 static Camera::Type getCamera(XMLElement& elCam, Camera& cam);
 static Light::Type getLight(XMLElement& elLight, Light& l, vec3 view);
 static void createGPUAssets(IqmTypeMap iqmTypes, Geometry& geom, string fileName);
-static void createGPUAssets(Shader& shader, Light& l, int i);
+static void createGPUAssets(GLint handles[4], Light& l);
 
 // tinyxml returns null if not found; my attempt at handling it here
 static inline float safeAtoF(XMLElement& el, string query){
@@ -81,7 +81,15 @@ Scene::Scene(string XmlSrc){
 	for (auto el = elLight->FirstChildElement(); el; el = el->NextSiblingElement()){
 		Light l;
 		getLight(*el, l, m_Camera.getView());
-		createGPUAssets(m_Shader, l, (int)m_vLights.size());
+		string s = "L[i].";
+		s[2] = '0' + m_vLights.size();
+		GLint handles[4] = { 
+			m_Shader[s + "type"],
+			m_Shader[s + "pos"],
+			m_Shader[s + "dir"],
+			m_Shader[s + "intensity"],
+		};
+		createGPUAssets(handles, l);
 		m_vLights.push_back(l);
 	}
 
@@ -276,16 +284,7 @@ static void createGPUAssets(IqmTypeMap iqmTypes, Geometry& geom, string fileName
 	glBindVertexArray(0);
 }
 
-static void createGPUAssets(Shader& m_Shader, Light& l, int i){
-	string s = "L[i].";
-	GLint handles[4];
-	s[2] = '0' + i;
-	i = 0;
-	handles[i++] = m_Shader[s + "type"];
-	handles[i++] = m_Shader[s + "pos"];
-	handles[i++] = m_Shader[s + "dir"];
-	handles[i] = m_Shader[s + "intensity"];
-
+static void createGPUAssets(GLint handles[4], Light& l){
 	glUniform1i(handles[0], (int)l.m_Type);
 	glUniform3f(handles[1], l.m_Pos[0], l.m_Pos[1], l.m_Pos[2]);
 	glUniform3f(handles[2], l.m_Dir[0], l.m_Dir[1], l.m_Dir[2]);
