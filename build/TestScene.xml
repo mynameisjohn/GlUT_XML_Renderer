@@ -16,14 +16,21 @@
   <Geom>
     <IqmFile
       Cr="1" Cg="1" Cb="1" Ca="1"
-      Tx="0" Ty="0" Tz="-400"
+      Tx="0" Ty="0" Tz="-200"
       Sx="60" Sy="60" Sz="60"
-      Rx="0" Ry="0" Rz="1" R="0">sphere.iqm</IqmFile>
+      Rx="0" Ry="1" Rz="0" R="0">sphere.iqm</IqmFile>
   </Geom>
   <Light>
+    <Ambient
+     iR="0.1" iG="0.1" iB="0.4">
+    </Ambient>
+    <Point
+      pX="100" pY="100" pZ="100"
+      iR="1" iG="1" iB="1">
+    </Point>
     <Directional
       pX="100" pY="100" pZ="100"
-      dX="-1" dY="0" dZ="0"
+      dX="-1" dY="1" dZ="0"
       iR="1" iG="1" iB="1"
       >
     </Directional>

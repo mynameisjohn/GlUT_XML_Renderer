@@ -24,6 +24,7 @@ static IqmTypeMap getShader(XMLElement& elShade, Shader& shader);
 static Camera::Type getCamera(XMLElement& elCam, Camera& cam);
 static Light::Type getLight(XMLElement& elLight, Light& l, vec3 view);
 static void createGPUAssets(IqmTypeMap iqmTypes, Geometry& geom, string fileName);
+static void createGPUAssets(Shader& shader, Light& l, int i);
 
 // tinyxml returns null if not found; my attempt at handling it here
 static inline float safeAtoF(XMLElement& el, string query){
@@ -69,9 +70,6 @@ Scene::Scene(string XmlSrc){
 		exit(7);
 	}
 
-	Light l;
-	getLight(*elLight, l, m_Camera.getView());
-
 	IqmTypeMap iqmTypes = getShader(*elShade, m_Shader);
 	if (iqmTypes.empty()){
 		cout << "Error: no attributes found in shader" << endl;
@@ -80,10 +78,12 @@ Scene::Scene(string XmlSrc){
 	// Bind shader, create GPU assets for geometry
 	auto sBind = m_Shader.S_Bind();
 
-	auto lD = m_Shader["L.dir"];
-	auto lI = m_Shader["L.intensity"];
-	glUniform3f(lD, l.m_Dir[0], l.m_Dir[1], l.m_Dir[2]);
-	glUniform3f(lI, l.m_Intensity[0], l.m_Intensity[1], l.m_Intensity[2]);
+	for (auto el = elLight->FirstChildElement(); el; el = el->NextSiblingElement()){
+		Light l;
+		getLight(*el, l, m_Camera.getView());
+		createGPUAssets(m_Shader, l, (int)m_vLights.size());
+		m_vLights.push_back(l);
+	}
 
 	// Grab MV, P handles (make this better)
 	GLint MVHandle = m_Shader["MV"], PHandle = m_Shader["P"];
@@ -153,7 +153,7 @@ static IqmTypeMap getShader(XMLElement& elShade, Shader& shader){
 				exit(6);
 			}
 			// Should I have the shader ensure it's an attribute?
-			ret[IqmFile::IQM_POSITION] = handle;
+			ret[IqmFile::IQM_T::POSITION] = handle;
 		}
 		else if (type.compare("Normal") == 0){
 			string var(el->GetText());
@@ -163,7 +163,7 @@ static IqmTypeMap getShader(XMLElement& elShade, Shader& shader){
 				exit(6);
 			}
 			// Should I have the shader ensure it's an attribute?
-			ret[IqmFile::IQM_NORMAL] = handle;
+			ret[IqmFile::IQM_T::NORMAL] = handle;
 		}
 	}
 
@@ -196,55 +196,70 @@ static Camera::Type getCamera(XMLElement& elCam, Camera& cam){
 }
 
 static Light::Type getLight(XMLElement& elLight, Light& l, vec3 view){
-	for (auto el = elLight.FirstChildElement(); el; el = el->NextSiblingElement()){
-		string lType(el->Value());
-		if (lType.compare("Directional") == 0){
-			vec3 pos(safeAtoF(*el, "pX"), safeAtoF(*el, "pY"), safeAtoF(*el, "pZ"));
-			vec3 dir(safeAtoF(*el, "dX"), safeAtoF(*el, "dY"), safeAtoF(*el, "dZ"));
-			vec3 intensity(safeAtoF(*el, "iR"), safeAtoF(*el, "iG"), safeAtoF(*el, "iB"));
-			l = Light(pos, dir, intensity);
-			return Light::Type::DIRECTIONAL;
-		}
+	Light::Type ret(Light::Type::NIL);
+	vec3 pos, dir(1), intensity;
+
+	string lType(elLight.Value());
+	if (lType.compare("Directional") == 0){
+		dir = vec3(safeAtoF(elLight, "dX"), safeAtoF(elLight, "dY"), safeAtoF(elLight, "dZ"));
+		intensity = vec3(safeAtoF(elLight, "iR"), safeAtoF(elLight, "iG"), safeAtoF(elLight, "iB"));
+		ret = Light::Type::DIRECTIONAL;
 	}
+	if (lType.compare("Point") == 0){
+		pos = vec3(safeAtoF(elLight, "pX"), safeAtoF(elLight, "pY"), safeAtoF(elLight, "pZ"));
+		intensity = vec3(safeAtoF(elLight, "iR"), safeAtoF(elLight, "iG"), safeAtoF(elLight, "iB"));
+		ret = Light::Type::POINT;
+	}
+	if (lType.compare("Ambient") == 0){
+		intensity = vec3(safeAtoF(elLight, "iR"), safeAtoF(elLight, "iG"), safeAtoF(elLight, "iB"));
+		ret = Light::Type::AMBIENT;
+	}
+
+	l = Light(ret, pos, dir, intensity);
+	return ret;
 }
 
 // Caller must bind shader (SBind could be an arg...) (does it have to be bound?)
 static void createGPUAssets(IqmTypeMap iqmTypes, Geometry& geom, string fileName){
 	IqmFile iqmFile(fileName);
 
-	//auto makeVBO = []
-	//	(GLuint buf, GLint handle, void * ptr, GLsizeiptr numBytes, GLuint dim, GLuint type){
-	//	glBindBuffer(GL_ARRAY_BUFFER, buf);
-	//	glBufferData(GL_ARRAY_BUFFER, numBytes, ptr, GL_STATIC_DRAW);
-	//	glEnableVertexAttribArray(handle);
-	//	glVertexAttribPointer(handle, dim, type, 0, 0, 0);
-	//	//Disable?
-	//};
-	//GLuint VAO(0), bIdx(0), nIndices(0);
-	//vector<GLuint> bufVBO(iqmTypes.size() + 1);
+	auto makeVBO = []
+		(GLuint buf, GLint handle, void * ptr, GLsizeiptr numBytes, GLuint dim, GLuint type){
+		glBindBuffer(GL_ARRAY_BUFFER, buf);
+		glBufferData(GL_ARRAY_BUFFER, numBytes, ptr, GL_STATIC_DRAW);
+		glEnableVertexAttribArray(handle);
+		glVertexAttribPointer(handle, dim, type, 0, 0, 0);
+		//Disable?
+	};
+	GLuint VAO(0), bIdx(0), nIndices(0);
+	vector<GLuint> bufVBO(iqmTypes.size() + 1);
 
-	//glGenVertexArrays(1, &VAO);
-	//glBindVertexArray(VAO);
+	glGenVertexArrays(1, &VAO);
+	glBindVertexArray(VAO);
 
-	//glGenBuffers(bufVBO.size(), bufVBO.data());
+	glGenBuffers(bufVBO.size(), bufVBO.data());
 
-	//auto idx = iqmFile.Indices();
-	//nIndices = idx.count();
+	auto idx = iqmFile.Indices();
+	nIndices = idx.count();
 
-	/*for (auto it = iqmTypes.cbegin(); it != iqmTypes.cend(); ++it){
+	for (auto it = iqmTypes.cbegin(); it != iqmTypes.cend(); ++it){
 		switch (it->first){
-			case IqmFile::IQM_T::POSITION:
+		case IqmFile::IQM_T::POSITION:
 		{
 			auto pos = iqmFile.Positions();
-			GLuint dim = pos.nativeSize() / sizeof(float);
-			makeVBO(bufVBO[bIdx++], it->second, pos.ptr(), pos.numBytes(), dim, GL_FLOAT);
+			makeVBO(bufVBO[bIdx++], it->second, pos.ptr(), pos.numBytes(), pos.nativeSize() / sizeof(float), GL_FLOAT);
 		}
 		break;
-		case IqmFile::IQM_NORMAL:
+		case IqmFile::IQM_T::NORMAL:
 		{
 			auto nrm = iqmFile.Normals();
-			GLuint dim = nrm.nativeSize() / sizeof(float);
-			makeVBO(bufVBO[bIdx++], it->second, nrm.ptr(), nrm.numBytes(), dim, GL_FLOAT);
+			makeVBO(bufVBO[bIdx++], it->second, nrm.ptr(), nrm.numBytes(), nrm.nativeSize() / sizeof(float), GL_FLOAT);
+		}
+		break;
+		case IqmFile::IQM_T::TEXCOORD:
+		{
+			auto tex = iqmFile.TexCoords();
+			makeVBO(bufVBO[bIdx++], it->second, tex.ptr(), tex.numBytes(), tex.nativeSize() / sizeof(float), GL_FLOAT);
 		}
 		break;
 		default:
@@ -258,5 +273,21 @@ static void createGPUAssets(IqmTypeMap iqmTypes, Geometry& geom, string fileName
 	geom.setNumIndices(nIndices);
 	geom.setVAO(VAO);
 
-	glBindVertexArray(0);*/
+	glBindVertexArray(0);
+}
+
+static void createGPUAssets(Shader& m_Shader, Light& l, int i){
+	string s = "L[i].";
+	GLint handles[4];
+	s[2] = '0' + i;
+	i = 0;
+	handles[i++] = m_Shader[s + "type"];
+	handles[i++] = m_Shader[s + "pos"];
+	handles[i++] = m_Shader[s + "dir"];
+	handles[i] = m_Shader[s + "intensity"];
+
+	glUniform1i(handles[0], (int)l.m_Type);
+	glUniform3f(handles[1], l.m_Pos[0], l.m_Pos[1], l.m_Pos[2]);
+	glUniform3f(handles[2], l.m_Dir[0], l.m_Dir[1], l.m_Dir[2]);
+	glUniform3f(handles[3], l.m_Intensity[0], l.m_Intensity[1], l.m_Intensity[2]);
 }

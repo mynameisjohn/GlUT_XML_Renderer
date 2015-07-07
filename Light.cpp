@@ -1,6 +1,7 @@
 #include "Light.h"
 
 using glm::vec3;
+using glm::normalize;
 
 Light::Light()
 	:m_Type(Type::NIL)
@@ -8,9 +9,9 @@ Light::Light()
 
 Light::~Light(){}
 
-Light::Light(vec3 pos, vec3 dir, vec3 intensity)
-	: m_Type(Type::DIRECTIONAL),
+Light::Light(Type t, vec3 pos, vec3 dir, vec3 intensity)
+	: m_Type(t),
 	m_Pos(pos),
-	m_Dir(dir),
+	m_Dir(normalize(dir)),
 	m_Intensity(intensity)
 {}

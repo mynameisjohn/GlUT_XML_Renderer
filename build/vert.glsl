@@ -1,5 +1,7 @@
 #version 120
 
+#define NUM_LIGHTS 3
+
 struct Light{
 	int type;
 	vec3 pos;
@@ -7,7 +9,7 @@ struct Light{
 	vec3 intensity;
 };
 
-uniform Light L;
+uniform Light L[NUM_LIGHTS];
 
 uniform mat4 MV;
 uniform mat4 P;

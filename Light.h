@@ -7,12 +7,11 @@ public:
 	enum class Type : int{
 		DIRECTIONAL,
 		POINT,
-		INFINITE,
 		AMBIENT,
 		NIL
 	};
 	Light();
-	Light(glm::vec3, glm::vec3, glm::vec3);
+	Light(Type, glm::vec3, glm::vec3, glm::vec3);
 	~Light();
 //private:
 	Type m_Type;
