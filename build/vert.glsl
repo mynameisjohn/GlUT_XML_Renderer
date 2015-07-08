@@ -18,8 +18,10 @@ attribute vec3 a_Pos;
 attribute vec3 a_Nrm;
 
 varying vec3 v_Nrm;
+varying vec3 v_Pos;
 
 void main(){
 	gl_Position = P * MV * vec4(a_Pos, 1);
 	v_Nrm = a_Nrm;
+	v_Pos = a_Pos;
 }

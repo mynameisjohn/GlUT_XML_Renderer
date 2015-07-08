@@ -3,9 +3,9 @@
   <Camera
     type="Perspective"
     fovy="1.57"
-    aspect="1.333333"
+    aspect="1.0"
     near="10"
-    far="-1000">
+    far="-100">
   </Camera>
   <Shader
     vert="vert.glsl"
@@ -15,23 +15,32 @@
   </Shader>
   <Geom>
     <IqmFile
-      Cr="1" Cg="1" Cb="1" Ca="1"
+      Cr="0.7" Cg="0" Cb="0" Ca="1"
       Tx="0" Ty="0" Tz="-200"
       Sx="60" Sy="60" Sz="60"
       Rx="0" Ry="1" Rz="0" R="0">sphere.iqm</IqmFile>
+    <IqmFile
+     Cr="1" Cg="1" Cb="1" Ca="1"
+     Tx="0" Ty="0" Tz="-100"
+     Sx="100" Sy="100" Sz="150"
+     Rx="0" Ry="1" Rz="0" R="0">cube.iqm</IqmFile>
   </Geom>
+  
   <Light>
     <Ambient
-     iR="0.1" iG="0.1" iB="0.4">
+      pX="10" pY="10" pZ="0"
+      dX="-1" dY="1" dZ="0"
+      iR="0.1" iG="0.1" iB="0.1">
     </Ambient>
     <Point
-      pX="100" pY="100" pZ="100"
-      iR="1" iG="1" iB="1">
+      pX="0" pY="0" pZ="0"
+      dX="0.00001" dY="0.0000005" dZ="0"
+      iR=".8" iG="0.8" iB="0.8">
     </Point>
     <Directional
-      pX="100" pY="100" pZ="100"
-      dX="-1" dY="1" dZ="0"
-      iR="1" iG="1" iB="1"
+      pX="10" pY="10" pZ="10"
+      dX="-1" dY="1" dZ="1"
+      iR="0.5" iG="0.2" iB="0"
       >
     </Directional>
   </Light>

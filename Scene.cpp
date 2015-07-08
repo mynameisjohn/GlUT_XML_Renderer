@@ -115,6 +115,7 @@ int Scene::Draw(){
 	glUniformMatrix4fv(m_Camera.getProjHandle(), 1, GL_FALSE, (const GLfloat *)m_Camera.getProjPtr());
 	for (auto& geom : m_vGeometry){
 		glUniformMatrix4fv(Geometry::getMVHandle(), 1, GL_FALSE, (const GLfloat *)geom.getMVPtr());
+		glUniform3fv(m_Shader["u_Color"], 1, (const GLfloat *)geom.getColorPtr());
 		glBindVertexArray(geom.getVAO());
 		glDrawElements(GL_TRIANGLES, geom.getNumIdx(), GL_UNSIGNED_INT, NULL);
 	}
@@ -205,23 +206,21 @@ static Camera::Type getCamera(XMLElement& elCam, Camera& cam){
 
 static Light::Type getLight(XMLElement& elLight, Light& l, vec3 view){
 	Light::Type ret(Light::Type::NIL);
-	vec3 pos, dir(1), intensity;
+
+	vec3 pos(safeAtoF(elLight, "pX"), safeAtoF(elLight, "pY"), safeAtoF(elLight, "pZ"));
+	vec3 dir(safeAtoF(elLight, "dX"), safeAtoF(elLight, "dY"), safeAtoF(elLight, "dZ"));
+	vec3 intensity(safeAtoF(elLight, "iR"), safeAtoF(elLight, "iG"), safeAtoF(elLight, "iB"));
 
 	string lType(elLight.Value());
-	if (lType.compare("Directional") == 0){
-		dir = vec3(safeAtoF(elLight, "dX"), safeAtoF(elLight, "dY"), safeAtoF(elLight, "dZ"));
-		intensity = vec3(safeAtoF(elLight, "iR"), safeAtoF(elLight, "iG"), safeAtoF(elLight, "iB"));
+	if (lType.compare("Directional") == 0)
 		ret = Light::Type::DIRECTIONAL;
-	}
-	if (lType.compare("Point") == 0){
-		pos = vec3(safeAtoF(elLight, "pX"), safeAtoF(elLight, "pY"), safeAtoF(elLight, "pZ"));
-		intensity = vec3(safeAtoF(elLight, "iR"), safeAtoF(elLight, "iG"), safeAtoF(elLight, "iB"));
+
+	if (lType.compare("Point") == 0)
 		ret = Light::Type::POINT;
-	}
-	if (lType.compare("Ambient") == 0){
-		intensity = vec3(safeAtoF(elLight, "iR"), safeAtoF(elLight, "iG"), safeAtoF(elLight, "iB"));
+	
+	if (lType.compare("Ambient") == 0)
 		ret = Light::Type::AMBIENT;
-	}
+	
 
 	l = Light(ret, pos, dir, intensity);
 	return ret;

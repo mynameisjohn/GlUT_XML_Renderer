@@ -15,6 +15,7 @@ public:
 	inline GLuint getNumIdx(){ return m_nIdx; }
 	static inline GLint getMVHandle(){ return s_MVHandle; }
 	inline glm::vec4 getColor(){ return m_v4Color; }
+	inline glm::vec4 * getColorPtr(){ return &m_v4Color; }
 	inline glm::mat4 getMV(){ return m_m4MV; }
 	inline glm::mat4 * getMVPtr(){ return &m_m4MV; }
 	inline void identity(){ m_m4MV = glm::mat4(1); }
