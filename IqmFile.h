@@ -143,6 +143,11 @@ public:
 		{
 			return m_File.getPtr<T>( C );
 		}
+		// Array operator
+		inline T& operator[](const uint32_t idx) const
+		{
+			return idx < count() ? ptr()[idx] : ptr()[count() - 1];
+		}
 		// Copy to a new vector
 		inline std::vector<T> toVec() const
 		{
