@@ -22,7 +22,11 @@ if(!GLEW_FOUND)
 	set(GLUT_INCLUDE_DIR $ENV{SDK}/glew/include )
 endif(!GLEW_FOUND)
 
-set(GLM_DIR $ENV{SDK}/glm)
+if (WIN32)
+	set(GLM_DIR $ENV{SDK}/glm)
+else
+	set(GLM_DIR /usr/include/glm)
+endif
 
 set(SOURCES tinyxml2.cpp Shader.cpp Scene.cpp main.cpp Geometry.cpp Camera.cpp IqmFile.cpp Light.cpp
 							Shader.h Scene.h Geometry.h Camera.h IqmFile.h Light.h
