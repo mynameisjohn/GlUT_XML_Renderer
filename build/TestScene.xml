@@ -14,11 +14,11 @@
     <Normal dim="3">a_Nrm</Normal>
   </Shader>
   <Geom>
-    <IqmFile
+    <!--<IqmFile
       Cr="0.7" Cg="0" Cb="0" Ca="1"
       Tx="0" Ty="0" Tz="-200"
       Sx="60" Sy="60" Sz="60"
-      Rx="0" Ry="1" Rz="0" R="0">sphere.iqm</IqmFile>
+      Rx="0" Ry="1" Rz="0" R="0">sphere.iqm</IqmFile>-->
     <IqmFile
      Cr="1" Cg="1" Cb="1" Ca="1"
      Tx="0" Ty="0" Tz="-100"

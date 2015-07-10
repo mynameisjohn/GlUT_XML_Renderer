@@ -27,7 +27,7 @@ void main(){
 		else if (L[i].type == 1){ // point
 			vec3 VP = -(L[i].pos - v_Pos);
 			float d = length(VP);
-			float nDotVP = dot(v_Nrm, normalize(VP));
+			float nDotVP = max(0, dot(v_Nrm, normalize(VP)));
 			float attenuation = 1.0;/*/
 				(L[i].dir[0] + L[i].dir[1] * d + L[i].dir[2] * d*d);*/
 			light += L[i].intensity * attenuation * nDotVP;
