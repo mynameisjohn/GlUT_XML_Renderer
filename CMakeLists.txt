@@ -24,7 +24,9 @@ endif(!GLEW_FOUND)
 
 set(GLM_DIR $ENV{SDK}/glm)
 
-set(SOURCES tinyxml2.cpp Shader.cpp Scene.cpp main.cpp Geometry.cpp Camera.cpp IqmFile.cpp)
+set(SOURCES tinyxml2.cpp Shader.cpp Scene.cpp main.cpp Geometry.cpp Camera.cpp IqmFile.cpp Light.cpp
+							Shader.h Scene.h Geometry.h Camera.h IqmFile.h Light.h
+							build/vert.glsl build/frag.glsl build/TestScene.xml)
 set(GL_LIBS ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES} ${GLUT_LIBRARIES})
 set(GL_INC ${OPENGL_INCLUDE_DIR} ${GLEW_INCLUDE_DIRS} ${GLUT_INCLUDE_DIR})
 
