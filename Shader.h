@@ -6,9 +6,16 @@
 //#define GLEW_STATIC
 
 #include <GL/glew.h>
-#include <GL/freeglut.h>
 
+#ifdef __APPLE__
+#include <GLUT/glut.h>
+#else
+#include <GL/freeglut.h>
+#endif
+
+#include <string>
 #include <map>
+
 using HandleMap = std::map < std::string, GLint >;
 
 class Shader

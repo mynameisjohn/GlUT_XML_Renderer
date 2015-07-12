@@ -15,8 +15,11 @@ void redraw(){
 void initGL(int argc, char ** argv){
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
+#ifndef __APPLE__
 	glutInitContextVersion(3, 0);
+#endif
 	glutInitWindowSize(600, 600);
+    glutInitWindowPosition(500, 500);
 	glutCreateWindow("GLUT XML Renderer");
 	
 	glutDisplayFunc(redraw);

@@ -34,7 +34,7 @@
     </Ambient>
     <Point
       pX="0" pY="0" pZ="0"
-      dX="0.00001" dY="0.0000005" dZ="0"
+      dX="1" dY="0.0015" dZ="0.0000005"
       iR=".8" iG="0.8" iB="0.8">
     </Point>
     <Directional
