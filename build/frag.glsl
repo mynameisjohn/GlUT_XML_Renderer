@@ -18,7 +18,7 @@ varying vec3 v_Pos;
 
 void main(){
 	// Compute total light contribution from all lights, all diffuse for now
-	vec3 light;
+	vec3 light = vec3(0,0,0);
 	for (int i = 0; i < NUM_LIGHTS; i++){
 		if (L[i].type == 0) // directional
 		{

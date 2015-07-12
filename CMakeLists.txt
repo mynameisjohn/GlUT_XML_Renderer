@@ -24,9 +24,9 @@ endif(!GLEW_FOUND)
 
 if (WIN32)
 	set(GLM_DIR $ENV{SDK}/glm)
-else
+else (WIN32)
 	set(GLM_DIR /usr/include/glm)
-endif
+endif (WIN32)
 
 set(SOURCES tinyxml2.cpp Shader.cpp Scene.cpp main.cpp Geometry.cpp Camera.cpp IqmFile.cpp Light.cpp
 							Shader.h Scene.h Geometry.h Camera.h IqmFile.h Light.h
