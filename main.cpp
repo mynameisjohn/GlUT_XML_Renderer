@@ -1,13 +1,15 @@
 #include "Scene.h"
+#include <MouseManager.h>
+#include "KeyboardManager.h"
+
+#include <gtx/quaternion.hpp>
+
 #include <iostream>
 using namespace std;
 
 Scene g_Scene;
 Camera g_Camera;
 Shader g_Shader;
-
-#include <MouseManager.h>
-#include "KeyboardManager.h"
 
 // TODO
 // I moved some stuff back in here to avoid a monolith,
@@ -22,6 +24,22 @@ void redraw(){
 	glutSwapBuffers();
 }
 
+void MouseBtnFunc(int button, int state, int x, int y){
+    MouseManager::HandleMouseBtn(button, state, x, y);
+}
+
+void MouseMotionFunc(int x, int y){
+    MouseManager::HandleMouseMove_B(x, y);
+}
+
+void MousePassiveFunc(int x, int y){
+    MouseManager::HandleMouseMove_P(x, y);
+}
+
+void KeyboardFunc(unsigned char k, int x, int y){
+    KeyboardManager::HandleKey(k, x, y);
+}
+
 void initGL(int argc, char ** argv){
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
@@ -34,10 +52,10 @@ void initGL(int argc, char ** argv){
 	
 	// Callbacks
 	glutDisplayFunc(redraw);
-	glutMouseFunc(MouseManager::HandleMouseBtn);
-	glutMotionFunc(MouseManager::HandleMouseMove_B);
-	glutPassiveMotionFunc(MouseManager::HandleMouseMove_P);
-	glutKeyboardFunc(KeyboardManager::HandleKey);
+    glutMouseFunc(MouseBtnFunc);
+	glutMotionFunc(MouseMotionFunc);
+	glutPassiveMotionFunc(MousePassiveFunc);
+    glutKeyboardFunc(KeyboardFunc);
 
 	glewExperimental = GL_TRUE;
 	GLenum err = glewInit();

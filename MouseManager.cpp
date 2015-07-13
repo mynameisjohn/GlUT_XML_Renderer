@@ -4,6 +4,8 @@
 #include <glm.hpp>
 #include <gtc/quaternion.hpp>
 
+using glm::fquat;
+
 MouseManager MouseManager::s_Inst;
 
 MouseManager::MouseManager() :
@@ -32,15 +34,15 @@ lY(-1)
 	s_Inst.lX = x;
 	s_Inst.lY = y;
 }
-/*static*/ void MouseManager::HandleMouseMove_B(int x, int y){
+/*static*/ fquat MouseManager::HandleMouseMove_B(int x, int y){
 	return HandleMouseMove(x, y, true);
 }
 
-/*static*/ void MouseManager::HandleMouseMove_P(int x, int y){
+/*static*/ fquat MouseManager::HandleMouseMove_P(int x, int y){
 	return HandleMouseMove(x, y, false);
 }
 
-/*static*/ void MouseManager::HandleMouseMove(int x, int y, bool button /*= false*/){
+/*static*/ fquat MouseManager::HandleMouseMove(int x, int y, bool button /*= false*/){
 	// What do?
 	int dX = abs(x - s_Inst.lX);
 	int dY = abs(x - s_Inst.lY);
@@ -54,6 +56,8 @@ lY(-1)
 
 	s_Inst.lX = x;
 	s_Inst.lY = y;
+    
+    return R;
 }
 
 /*static*/ const MouseManager * MouseManager::Instance() {

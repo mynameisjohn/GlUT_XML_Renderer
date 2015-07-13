@@ -2,10 +2,12 @@
 
 #include <vector>
 
+#include <fwd.hpp>
+
 class KeyboardManager{
 public:
 	static void Init();
-	static void HandleKey(unsigned char key, int x, int y);
+    static glm::vec3 HandleKey(unsigned char key, int x, int y);
 	static const KeyboardManager * Instance();
 private:
 	KeyboardManager();

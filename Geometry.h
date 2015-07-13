@@ -2,7 +2,8 @@
 
 #include "GL_Includes.h"
 
-#include <glm.hpp>
+#include <vec4.hpp>
+#include <mat4x4.hpp>
 
 class Geometry
 {

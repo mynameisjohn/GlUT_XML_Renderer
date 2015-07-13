@@ -1,4 +1,5 @@
 #include "Light.h"
+#include <glm.hpp>
 
 using glm::vec3;
 using glm::normalize;

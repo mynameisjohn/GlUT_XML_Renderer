@@ -1,5 +1,8 @@
 #include "KeyboardManager.h"
 
+#include <vec3.hpp>
+using glm::vec3;
+
 KeyboardManager KeyboardManager::s_Inst;
 
 KeyboardManager::KeyboardManager() :
@@ -12,7 +15,7 @@ vKeyState(512, false)
 
 //public: 
 // This should return something useful
-/*static*/ void KeyboardManager::HandleKey(unsigned char key, int x, int y){
+/*static*/ vec3 KeyboardManager::HandleKey(unsigned char key, int x, int y){
 	// Wat do?
 	s_Inst.vKeyState[key] = !s_Inst.vKeyState[key];
 }
