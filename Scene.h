@@ -13,12 +13,12 @@ class Scene
 {
 public:
 	Scene();
-	Scene(std::string XmlSrc);
+	Scene(std::string XmlSrc, Shader& shader, Camera& cam);
 	~Scene();
 	int Draw();
 private:
-	Camera m_Camera;
-	Shader m_Shader;
+	//Camera m_Camera;
+	//Shader m_Shader;
 	GeomVec m_vGeometry;
 	LightVec m_vLights;
 };

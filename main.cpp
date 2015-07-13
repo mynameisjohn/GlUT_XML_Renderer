@@ -1,17 +1,24 @@
 #include "Scene.h"
 #include <iostream>
 using namespace std;
-// Implement those constructors...
-#include <memory>
-using ScenePtr = unique_ptr < Scene > ;
-ScenePtr S;
+
+Scene g_Scene;
+Camera g_Camera;
+Shader g_Shader;
 
 #include <MouseManager.h>
 #include "KeyboardManager.h"
 
+// TODO
+// I moved some stuff back in here to avoid a monolith,
+// but things will have to be restructured
+
 void redraw(){
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	S->Draw();
+    auto sBind = g_Shader.S_Bind();
+    glUniformMatrix4fv(g_Camera.getProjHandle(), 1, GL_FALSE, (const GLfloat *)g_Camera.getProjPtr());
+    glUniform3f(g_Shader["u_Color"], 1,0,1); //I should be able to ditch these with textures
+	g_Scene.Draw();
 	glutSwapBuffers();
 }
 
@@ -48,9 +55,7 @@ void initGL(int argc, char ** argv){
 
 int main(int argc, char ** argv){
 	initGL(argc, argv);
-
-	S = ScenePtr(new Scene("TestScene.xml"));
-	
+    g_Scene = Scene("TestScene.xml", g_Shader, g_Camera);
 	glutMainLoop();
 
 	return EXIT_SUCCESS;

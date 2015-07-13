@@ -1,4 +1,6 @@
 #include "Scene.h"
+#include "Camera.h"
+#include "Shader.h"
 #include "IqmFile.h"
 
 #include <string>
@@ -41,10 +43,13 @@ static inline float safeAtoF(XMLElement& el, string query){
 // TODO: Move constructor...
 Scene::Scene(){}
 
-Scene::Scene(string XmlSrc){
+Scene::~Scene(){}
+
+Scene::Scene(string XmlSrc, Shader& shader, Camera& cam){
 	XMLDocument doc;
 	doc.LoadFile(XmlSrc.c_str());
 
+    // Verify XML element exists
 	auto check = [](string name, XMLElement * parent){
 		XMLElement * ret = parent->FirstChildElement(name.c_str());
 		if (!ret){
@@ -54,50 +59,58 @@ Scene::Scene(string XmlSrc){
 		return ret;
 	};
 
+    // Get the root (Scene) element
 	XMLElement * elScene = doc.FirstChildElement("Scene");
 	if (!elScene){
 		cout << "XML Root not found. " << endl;
 		exit(5);
 	}
+    // Get and verify that important things are there
 	XMLElement * elCam = check("Camera", elScene);
 	XMLElement * elShade = check("Shader", elScene);
 	XMLElement * elGeom = check("Geom", elScene);
 	XMLElement * elLight = check("Light", elScene);
 
-	Camera::Type camType = getCamera(*elCam, m_Camera);
+    // Init Camera
+	Camera::Type camType = getCamera(*elCam, cam);
 	if (camType == Camera::Type::NIL){
 		cout << "Error creating Camera" << endl;
 		exit(7);
 	}
 
-	IqmTypeMap iqmTypes = getShader(*elShade, m_Shader);
+    // Init Shader, get map of vertex attributes
+	IqmTypeMap iqmTypes = getShader(*elShade, shader);
 	if (iqmTypes.empty()){
 		cout << "Error: no attributes found in shader" << endl;
 		exit(8);
-	}
+    }
+    
 	// Bind shader, create GPU assets for geometry
-	auto sBind = m_Shader.S_Bind();
-
+	auto sBind = shader.S_Bind();
+    
+    // Grab MV, P handles (make this better)
+    GLint MVHandle = shader["MV"], PHandle = shader["P"];
+    Camera::setProjHandle(PHandle);
+    Geometry::setMVHandle(MVHandle);
+    
 	for (auto el = elLight->FirstChildElement(); el; el = el->NextSiblingElement()){
+        // Set up lights, going by light struct (individual array elements must be accessed because GL3)
 		Light l;
-		getLight(*el, l, m_Camera.getView());
+		getLight(*el, l, cam.getView());
 		string s = "L[i].";
 		s[2] = '0' + m_vLights.size();
 		GLint handles[4] = { 
-			m_Shader[s + "type"],
-			m_Shader[s + "pos"],
-			m_Shader[s + "dir"],
-			m_Shader[s + "intensity"],
+			shader[s + "type"],
+			shader[s + "pos"],
+			shader[s + "dir"],
+			shader[s + "intensity"],
 		};
+        // Put data on GPU
 		createGPUAssets(handles, l);
 		m_vLights.push_back(l);
 	}
 
-	// Grab MV, P handles (make this better)
-	GLint MVHandle = m_Shader["MV"], PHandle = m_Shader["P"];
-	Camera::setProjHandle(PHandle);
-	Geometry::setMVHandle(MVHandle);
-
+    // Create Geometry
 	for (auto el = elGeom->FirstChildElement(); el; el = el->NextSiblingElement()){
 		Geometry g;
 		string fileName = getGeom(*el, g);
@@ -106,16 +119,10 @@ Scene::Scene(string XmlSrc){
 	}
 }
 
-Scene::~Scene()
-{
-}
-
+// Client must bind shader
 int Scene::Draw(){
-	auto sBind = m_Shader.S_Bind();
-	glUniformMatrix4fv(m_Camera.getProjHandle(), 1, GL_FALSE, (const GLfloat *)m_Camera.getProjPtr());
 	for (auto& geom : m_vGeometry){
 		glUniformMatrix4fv(Geometry::getMVHandle(), 1, GL_FALSE, (const GLfloat *)geom.getMVPtr());
-		glUniform3fv(m_Shader["u_Color"], 1, (const GLfloat *)geom.getColorPtr());
 		glBindVertexArray(geom.getVAO());
 		glDrawElements(GL_TRIANGLES, geom.getNumIdx(), GL_UNSIGNED_INT, NULL);
 	}
@@ -125,7 +132,6 @@ int Scene::Draw(){
 }
 
 static string getGeom(XMLElement& elGeom, Geometry& geom){
-
 	// Get Color, Translate, Scale, Rotate from XML - Could easily segfault here...
 	vec4 C(safeAtoF(elGeom, "Cr"), safeAtoF(elGeom, "Cg"), safeAtoF(elGeom, "Cb"), safeAtoF(elGeom, "Ca"));
 	vec3 T(safeAtoF(elGeom, "Tx"), safeAtoF(elGeom, "Ty"), safeAtoF(elGeom, "Tz"));

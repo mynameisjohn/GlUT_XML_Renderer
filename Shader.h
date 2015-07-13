@@ -1,18 +1,8 @@
 #pragma once
 
+#include "GL_Includes.h"
+
 // You should make copying / moving safe
-
-//#define FREEGLUT_STATIC
-//#define GLEW_STATIC
-
-#include <GL/glew.h>
-
-#ifdef __APPLE__
-#include <GLUT/glut.h>
-#else
-#include <GL/freeglut.h>
-#endif
-
 #include <string>
 #include <map>
 

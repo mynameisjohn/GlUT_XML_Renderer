@@ -1,11 +1,3 @@
-//
-//  Header.h
-//  GLUT_XML_Renderer
-//
-//  Created by Cakeadmin on 7/13/15.
-//
-//
-
 #ifndef GL_INCLUDES
 #define GL_INCLUDES
 
