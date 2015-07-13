@@ -14,7 +14,7 @@ vKeyState(512, false)
 // This should return something useful
 /*static*/ void KeyboardManager::HandleKey(unsigned char key, int x, int y){
 	// Wat do?
-	s_Inst.vKeyState[unsigned int(key)] = !s_Inst.vKeyState[unsigned int(key)];
+	s_Inst.vKeyState[key] = !s_Inst.vKeyState[key];
 }
 
 /*static*/ const KeyboardManager * KeyboardManager::Instance(){
