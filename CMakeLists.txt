@@ -28,8 +28,8 @@ else (WIN32)
 	set(GLM_DIR /usr/include/glm)
 endif (WIN32)
 
-set(SOURCES tinyxml2.cpp Shader.cpp Scene.cpp main.cpp Geometry.cpp Camera.cpp IqmFile.cpp Light.cpp
-							Shader.h Scene.h Geometry.h Camera.h IqmFile.h Light.h
+set(SOURCES tinyxml2.cpp Shader.cpp Scene.cpp main.cpp Geometry.cpp Camera.cpp IqmFile.cpp Light.cpp MouseManager.cpp KeyboardMnaager.cpp
+							Shader.h Scene.h Geometry.h Camera.h IqmFile.h Light.h MouseManager.h KeyboardManager.h
 							build/vert.glsl build/frag.glsl build/TestScene.xml)
 set(GL_LIBS ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES} ${GLUT_LIBRARIES})
 set(GL_INC ${OPENGL_INCLUDE_DIR} ${GLEW_INCLUDE_DIRS} ${GLUT_INCLUDE_DIR})

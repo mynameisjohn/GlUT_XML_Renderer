@@ -6,6 +6,9 @@ using namespace std;
 using ScenePtr = unique_ptr < Scene > ;
 ScenePtr S;
 
+#include <MouseManager.h>
+#include "KeyboardManager.h"
+
 void redraw(){
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	S->Draw();
@@ -22,7 +25,13 @@ void initGL(int argc, char ** argv){
     glutInitWindowPosition(500, 500);
 	glutCreateWindow("GLUT XML Renderer");
 	
+	// Callbacks
 	glutDisplayFunc(redraw);
+	glutMouseFunc(MouseManager::HandleMouseBtn);
+	glutMotionFunc(MouseManager::HandleMouseMove_B);
+	glutPassiveMotionFunc(MouseManager::HandleMouseMove_P);
+	glutKeyboardFunc(KeyboardManager::HandleKey);
+
 	glewExperimental = GL_TRUE;
 	GLenum err = glewInit();
 	if (err != GLEW_OK){
