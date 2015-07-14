@@ -3,9 +3,14 @@
 #include "KeyboardManager.h"
 
 #include <gtx/quaternion.hpp>
+#include <gtx/transform.hpp>
 
 #include <iostream>
 using namespace std;
+
+const unsigned int WIDTH = 600;
+const unsigned int HEIGHT = 600;
+const unsigned int FPS = 30;
 
 Scene g_Scene;
 Camera g_Camera;
@@ -18,26 +23,43 @@ Shader g_Shader;
 void redraw(){
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     auto sBind = g_Shader.S_Bind();
-    glUniformMatrix4fv(g_Camera.getProjHandle(), 1, GL_FALSE, (const GLfloat *)g_Camera.getProjPtr());
+    auto proj = g_Camera.getMat();
+    glUniformMatrix4fv(g_Camera.getProjHandle(), 1, GL_FALSE, (const GLfloat *)&proj);
     glUniform3f(g_Shader["u_Color"], 1,0,1); //I should be able to ditch these with textures
 	g_Scene.Draw();
-	glutSwapBuffers();
-}
+	glutSwapBuffers();}
 
 void MouseBtnFunc(int button, int state, int x, int y){
     MouseManager::HandleMouseBtn(button, state, x, y);
 }
 
 void MouseMotionFunc(int x, int y){
-    MouseManager::HandleMouseMove_B(x, y);
+    g_Camera.rotate(MouseManager::HandleMouseMove_B(x, y));
 }
 
 void MousePassiveFunc(int x, int y){
-    MouseManager::HandleMouseMove_P(x, y);
+    g_Camera.rotate(MouseManager::HandleMouseMove_P(x, y));
 }
 
 void KeyboardFunc(unsigned char k, int x, int y){
-    KeyboardManager::HandleKey(k, x, y);
+    KeyboardManager::HandleKey(k, x, y); // Kind of useless right now
+    switch (k){
+            case 'w':
+            g_Camera.translate({0,0,1});
+        default:
+            break;
+    }
+}
+
+// Val can be the case of several registered callbacks... but I don't care
+void onTimer(int val){
+    switch(val){
+        case 0: // right now all I care about is redrawing at FPS
+        default:
+            redraw();
+            glutTimerFunc(FPS/1000.f,onTimer,0);
+            break;
+    }
 }
 
 void initGL(int argc, char ** argv){
@@ -46,8 +68,8 @@ void initGL(int argc, char ** argv){
 #ifndef __APPLE__
 	glutInitContextVersion(3, 0);
 #endif
-	glutInitWindowSize(600, 600);
-    glutInitWindowPosition(500, 500);
+	glutInitWindowSize(WIDTH, HEIGHT);
+    glutInitWindowPosition(250, 500);
 	glutCreateWindow("GLUT XML Renderer");
 	
 	// Callbacks
@@ -56,6 +78,7 @@ void initGL(int argc, char ** argv){
 	glutMotionFunc(MouseMotionFunc);
 	glutPassiveMotionFunc(MousePassiveFunc);
     glutKeyboardFunc(KeyboardFunc);
+    glutTimerFunc(FPS/1000.f, onTimer, 0);
 
 	glewExperimental = GL_TRUE;
 	GLenum err = glewInit();

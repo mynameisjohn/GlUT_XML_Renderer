@@ -23,3 +23,7 @@ vKeyState(512, false)
 /*static*/ const KeyboardManager * KeyboardManager::Instance(){
 	return (const KeyboardManager *)&s_Inst;
 }
+
+/*static*/ bool KeyboardManager::GetKeyState(unsigned char key){
+    return s_Inst.vKeyState[key];
+}

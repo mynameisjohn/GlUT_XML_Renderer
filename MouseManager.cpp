@@ -1,5 +1,8 @@
 #include "MouseManager.h"
 
+#include <iostream>
+using namespace std;
+
 #include <math.h>
 #include <glm.hpp>
 #include <gtc/quaternion.hpp>
@@ -21,18 +24,6 @@ lY(-1)
 // This should return something useful
 /*static*/ void MouseManager::HandleMouseBtn(int button, int state, int x, int y){
 	// What do?
-	int dX = abs(x - s_Inst.lX);
-	int dY = abs(x - s_Inst.lY);
-	auto fn = [](float x){
-		return 0.5 * x;
-	};
-
-	glm::fquat rX(cos(fn(y)), sin(fn(y)), 0, 0);
-	glm::fquat rY(cos(fn(x)), 0, sin(fn(x)), 0);
-	glm::fquat R = rX*rY;
-
-	s_Inst.lX = x;
-	s_Inst.lY = y;
 }
 /*static*/ fquat MouseManager::HandleMouseMove_B(int x, int y){
 	return HandleMouseMove(x, y, true);
@@ -42,18 +33,19 @@ lY(-1)
 	return HandleMouseMove(x, y, false);
 }
 
+//private:
 /*static*/ fquat MouseManager::HandleMouseMove(int x, int y, bool button /*= false*/){
 	// What do?
-	int dX = abs(x - s_Inst.lX);
-	int dY = abs(x - s_Inst.lY);
+    float dX((x - s_Inst.lX));
+	float dY((y - s_Inst.lY));
 	auto fn = [](float x){
 		return 0.5 * x;
 	};
-
-	glm::fquat rX(cos(fn(y)), sin(fn(y)), 0, 0);
-	glm::fquat rY(cos(fn(x)), 0, sin(fn(x)), 0);
+    
+	glm::fquat rX(cos(fn(dY/180.f)), sin(fn(dY/180.f)), 0, 0);
+	glm::fquat rY(cos(fn(dX/180.f)), 0, sin(fn(dX/180.f)), 0);
 	glm::fquat R = rX*rY;
-
+    
 	s_Inst.lX = x;
 	s_Inst.lY = y;
     
