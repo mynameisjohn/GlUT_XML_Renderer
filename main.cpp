@@ -43,9 +43,20 @@ void MousePassiveFunc(int x, int y){
 
 void KeyboardFunc(unsigned char k, int x, int y){
     KeyboardManager::HandleKey(k, x, y); // Kind of useless right now
+    const float T(5.f);
     switch (k){
             case 'w':
-            g_Camera.translate({0,0,1});
+            g_Camera.translate(T*glm::vec3(0,0,1));
+            break;
+            case 's':
+            g_Camera.translate(T*glm::vec3(0,0,-1));
+            break;
+            case 'd':
+            g_Camera.translate(T*glm::vec3(-1,0,0));
+            break;
+            case 'a':
+            g_Camera.translate(T*glm::vec3(-1,0,0));
+            break;
         default:
             break;
     }
@@ -69,7 +80,7 @@ void initGL(int argc, char ** argv){
 	glutInitContextVersion(3, 0);
 #endif
 	glutInitWindowSize(WIDTH, HEIGHT);
-    glutInitWindowPosition(250, 500);
+    glutInitWindowPosition(250, 1000);
 	glutCreateWindow("GLUT XML Renderer");
 	
 	// Callbacks

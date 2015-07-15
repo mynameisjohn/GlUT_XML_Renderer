@@ -32,7 +32,7 @@ m_qRot(1,0,0,1)
 Camera::Camera(float fovy, float aspect, glm::vec2 nf)
 	: m_Type(Type::PERSP),
 m_m4Proj(glm::perspective(fovy, aspect, nf[0], nf[1])),
-m_v3Pos(0),
+m_v3Pos(0,0,0),
 m_qRot(1,0,0,1)
 {
 }
@@ -44,7 +44,8 @@ vec3 Camera::getView(){
 // TODO bring QuatVecs back, you need a TRT
 
 mat4 Camera::getMat(){
-    return m_m4Proj * glm::translate(m_v3Pos)*glm::mat4_cast(m_qRot)*glm::translate(-m_v3Pos);
+    // I have no idea why this works
+    return m_m4Proj*glm::mat4_cast(m_qRot)*glm::translate(m_v3Pos);//*glm::translate(-m_v3Pos);
 }
 
 void Camera::rotate(fquat Q){
@@ -55,9 +56,6 @@ using namespace std;
 void Camera::translate(vec3 T){
     // The deal here is to take a cartesian translation
     // and make it in our space (front of the camera is +z?)
-    vec3 Tp = vec3(glm::mat4_cast(m_qRot)*vec4(T,1));
-    //m_v3Pos += Tp;
-    m_m4Proj = m_m4Proj * glm::translate(Tp);
-    cout << T.x << ", " << T.x << ", " << T.z << "\n";
-    cout << Tp.x << ", " << Tp.x << ", " << Tp.z << endl;;
+    vec3 Tp(glm::mat4_cast(m_qRot)*vec4(T,1));
+    m_v3Pos += Tp;
 }
