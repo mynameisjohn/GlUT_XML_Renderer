@@ -27,7 +27,14 @@ void redraw(){
     glUniformMatrix4fv(g_Camera.getProjHandle(), 1, GL_FALSE, (const GLfloat *)&proj);
     glUniform3f(g_Shader["u_Color"], 1,0,1); //I should be able to ditch these with textures
 	g_Scene.Draw();
-	glutSwapBuffers();}
+	glutSwapBuffers();
+}
+
+// Right now Moues Func is a little fucked because
+// there's a huge jump between the first mouse position
+// and what the mouse manager initializes to.
+// Until I resolve it, I'll just use arrows keys to rotate
+// Sucks, though.
 
 void MouseBtnFunc(int button, int state, int x, int y){
     MouseManager::HandleMouseBtn(button, state, x, y);
@@ -44,6 +51,11 @@ void MousePassiveFunc(int x, int y){
 void KeyboardFunc(unsigned char k, int x, int y){
     KeyboardManager::HandleKey(k, x, y); // Kind of useless right now
     const float T(5.f);
+    float th_o_2(0.1f);
+    auto getquat = [th_o_2](glm::vec3 v){
+        return glm::fquat(cosf(th_o_2),sinf(th_o_2)*v);
+    };
+    cout << k << endl;
     switch (k){
             case 'w':
             g_Camera.translate(T*glm::vec3(0,0,1));
@@ -55,8 +67,20 @@ void KeyboardFunc(unsigned char k, int x, int y){
             g_Camera.translate(T*glm::vec3(-1,0,0));
             break;
             case 'a':
-            g_Camera.translate(T*glm::vec3(-1,0,0));
+            g_Camera.translate(T*glm::vec3(1,0,0));
             break;
+//        case 'u':
+//            g_Camera.rotate(getquat({-1,0,0}));
+//            break;
+//        case 'j':
+//            g_Camera.rotate(getquat({1,0,0}));
+//            break;
+//        case 'h':
+//            g_Camera.rotate(getquat({0,-1,0}));
+//            break;
+//        case 'k':
+//            g_Camera.rotate(getquat({0,1,0}));
+//            break;
         default:
             break;
     }

@@ -16,4 +16,6 @@ private:
 	int button;
 	int lX;
 	int lY;
+    int cX;
+    int cY;
 };

@@ -13,7 +13,9 @@ MouseManager MouseManager::s_Inst;
 
 MouseManager::MouseManager() :
 lX(-1),
-lY(-1)
+lY(-1),
+cX(0),
+cY(0)
 {}
 
 /*static*/ void MouseManager::Init(){
@@ -35,16 +37,27 @@ lY(-1)
 
 //private:
 /*static*/ fquat MouseManager::HandleMouseMove(int x, int y, bool button /*= false*/){
-	// What do?
-    float dX((x - s_Inst.lX));
-	float dY((y - s_Inst.lY));
-	auto fn = [](float x){
-		return 0.5 * x;
-	};
+    auto fn = [](float x){
+        return 0.5 * x;
+    };
     
-	glm::fquat rX(cos(fn(dY/180.f)), sin(fn(dY/180.f)), 0, 0);
-	glm::fquat rY(cos(fn(dX/180.f)), 0, sin(fn(dX/180.f)), 0);
-	glm::fquat R = rX*rY;
+	// What do?
+    float dX(x - s_Inst.lX);
+	float dY(y - s_Inst.lY);
+    
+    s_Inst.cX += int(dX);
+    s_Inst.cY += int(dY);
+    
+    //glm::fquat R(1,0,0,0);
+    
+    //if (abs(s_Inst.cX)<500)
+    glm::fquat R = glm::fquat(cos(fn(dY/180.f)), sin(fn(dY/180.f)), 0, 0);
+    //if (abs(s_Inst.cY)<500)
+    R = R * glm::fquat(cos(fn(dX/180.f)), 0, sin(fn(dX/180.f)), 0);
+    
+//	glm::fquat rX(cos(fn(dY/180.f)), sin(fn(dY/180.f)), 0, 0);
+//	glm::fquat rY(cos(fn(dX/180.f)), 0, sin(fn(dX/180.f)), 0);
+//	glm::fquat R = rX*rY;
     
 	s_Inst.lX = x;
 	s_Inst.lY = y;
