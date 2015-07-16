@@ -97,6 +97,8 @@ void onTimer(int val){
     }
 }
 
+// If I could init the Mouse Manager to have start at whatever
+// the mouse pos is now, it would be ideal
 void initGL(int argc, char ** argv){
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
@@ -114,6 +116,10 @@ void initGL(int argc, char ** argv){
 	glutPassiveMotionFunc(MousePassiveFunc);
     glutKeyboardFunc(KeyboardFunc);
     glutTimerFunc(FPS/1000.f, onTimer, 0);
+    
+    // This is the initial last position of the mouse manager
+    // so that on startup it doesn't jerk around
+    glutWarpPointer(-1, -1);
 
 	glewExperimental = GL_TRUE;
 	GLenum err = glewInit();
