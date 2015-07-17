@@ -86,7 +86,7 @@ Scene::Scene(string XmlSrc, Shader& shader, Camera& cam){
     }
     
 	// Bind shader, create GPU assets for geometry
-	auto sBind = shader.S_Bind();
+	auto sBind = shader.ScopeBind();
     
     // Grab MV, P handles (make this better)
     GLint MVHandle = shader["MV"], PHandle = shader["P"];
@@ -155,7 +155,7 @@ static IqmTypeMap getShader(XMLElement& elShade, Shader& shader){
 	// Also check to see if all variables described in XML are present
 	string vSrc(elShade.Attribute("vert")), fSrc(elShade.Attribute("frag"));
 	shader = Shader(vSrc, fSrc);
-	auto sBind = shader.S_Bind();
+	auto sBind = shader.ScopeBind();
 
 	// Check all shader variables
 	for (auto el = elShade.FirstChildElement(); el; el = el->NextSiblingElement()){
@@ -218,6 +218,7 @@ static Light::Type getLight(XMLElement& elLight, Light& l, vec3 view){
 	vec3 intensity(safeAtoF(elLight, "iR"), safeAtoF(elLight, "iG"), safeAtoF(elLight, "iB"));
 
 	string lType(elLight.Value());
+    
 	if (lType.compare("Directional") == 0)
 		ret = Light::Type::DIRECTIONAL;
 
@@ -226,7 +227,6 @@ static Light::Type getLight(XMLElement& elLight, Light& l, vec3 view){
 	
 	if (lType.compare("Ambient") == 0)
 		ret = Light::Type::AMBIENT;
-	
 
 	l = Light(ret, pos, dir, intensity);
 	return ret;
@@ -236,6 +236,7 @@ static Light::Type getLight(XMLElement& elLight, Light& l, vec3 view){
 static void createGPUAssets(IqmTypeMap iqmTypes, Geometry& geom, string fileName){
 	IqmFile iqmFile(fileName);
 
+    // Lambda to generate a VBO
 	auto makeVBO = []
 		(GLuint buf, GLint handle, void * ptr, GLsizeiptr numBytes, GLuint dim, GLuint type){
 		glBindBuffer(GL_ARRAY_BUFFER, buf);
@@ -244,6 +245,8 @@ static void createGPUAssets(IqmTypeMap iqmTypes, Geometry& geom, string fileName
 		glVertexAttribPointer(handle, dim, type, 0, 0, 0);
 		//Disable?
 	};
+    
+    // Create VAO, then create all VBOs
 	GLuint VAO(0), bIdx(0), nIndices(0);
 	vector<GLuint> bufVBO(iqmTypes.size() + 1);
 
@@ -251,10 +254,8 @@ static void createGPUAssets(IqmTypeMap iqmTypes, Geometry& geom, string fileName
 	glBindVertexArray(VAO);
 
 	glGenBuffers(bufVBO.size(), bufVBO.data());
-
-	auto idx = iqmFile.Indices();
-	nIndices = idx.count();
-
+    
+    // Get all VBO data
 	for (auto it = iqmTypes.cbegin(); it != iqmTypes.cend(); ++it){
 		switch (it->first){
 		case IqmFile::IQM_T::POSITION:
@@ -280,6 +281,9 @@ static void createGPUAssets(IqmTypeMap iqmTypes, Geometry& geom, string fileName
 		}
 	}
 
+    // Indices
+    auto idx = iqmFile.Indices();
+    nIndices = idx.count();
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bufVBO[bIdx]);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, idx.numBytes(), idx.ptr(), GL_STATIC_DRAW);
 

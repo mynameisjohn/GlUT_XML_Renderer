@@ -19,9 +19,6 @@ public:
 	public:
 		~ScopedBind(){ m_Shader.Unbind(); }
 	};
-	struct VBOFactory{
-		HandleMap m_attrs;
-	};
 	// Private initializer
 	int CompileAndLink();
 public:
@@ -38,9 +35,8 @@ public:
 	int PrintSrc_F() const;
 	GLint getHandle(const std::string idx);
 	GLint operator [] (const std::string idx);
-	inline ScopedBind S_Bind(){ return ScopedBind(*this); }
+	inline ScopedBind ScopeBind(){ return ScopedBind(*this); }
 	inline HandleMap getHandleMap() { return m_Handles; }
-	VBOFactory getAttrFactory();
 private:
 	bool m_bIsBound;
 	GLuint m_Program;

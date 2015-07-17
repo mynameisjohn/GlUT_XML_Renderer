@@ -22,7 +22,7 @@ Shader g_Shader;
 
 void redraw(){
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	auto sBind = g_Shader.S_Bind();
+	auto sBind = g_Shader.ScopeBind();
 
 	glm::mat4 proj = g_Camera.getMat();
 	glUniformMatrix4fv(g_Camera.getProjHandle(), 1, GL_FALSE, (const GLfloat *)&proj);
@@ -44,9 +44,10 @@ void MouseMovementFunc(int x, int y, int btn = 0){
 	// Press alt to actually move the mouse
 	bool tX = (x < thr) || (WIDTH - x < thr);
 	bool tY = (y < thr) || (HEIGHT - y < thr);
-	bool noMove = KeyboardManager::GetKeyState(GLUT_KEY_ALT_L);
+	bool noMove = KeyboardManager::GetKeyState('y'); // Apple GLUT doesn't have this... SDL2?
+    
 
-	if (tX || tY && !noMove){
+	if ((tX || tY) && !noMove){
 		MouseManager::Reset(hW, hH);
 		glutWarpPointer(hW, hH);
 	}
@@ -64,31 +65,8 @@ void MousePassiveFunc(int x, int y){
 
 // Tell keyboard manager, handle basic stuff
 void KeyboardFunc(unsigned char k, int x, int y){
-	const float T(5.f);
-	float th_o_2(0.1f);
-
-	auto getquat = [th_o_2](glm::vec3 v){
-		return glm::fquat(cosf(th_o_2), sinf(th_o_2)*v);
-	};
-
 	// Tell keyboard manager and move if needed
-	KeyboardManager::HandleKey(k, x, y);
-	switch (k){
-	case 'w':
-		g_Camera.translate(T*glm::vec3(0, 0, 1));
-		break;
-	case 's':
-		g_Camera.translate(T*glm::vec3(0, 0, -1));
-		break;
-	case 'd':
-		g_Camera.translate(T*glm::vec3(-1, 0, 0));
-		break;
-	case 'a':
-		g_Camera.translate(T*glm::vec3(1, 0, 0));
-		break;
-	default:
-		break;
-	}
+    g_Camera.translate(KeyboardManager::HandleKey(k, x, y));
 }
 
 // Val can be the case of several registered callbacks... but I don't care
