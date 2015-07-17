@@ -42,13 +42,15 @@ lY(-1)  // so that the initial dX = dY = 0
 	// What do?
     float dX(x - s_Inst.lX);
 	float dY(y - s_Inst.lY);
+
+	int dist_sq = dX*dX + dY*dY;
     
     // The problem with this is that it lets the
     // camera twist in z, which becomes disorienting
     // how do I deal with it?
-	glm::fquat rX(cos(fn(dY/180.f)), sin(fn(dY/180.f)), 0, 0);
-	glm::fquat rY(cos(fn(dX/180.f)), 0, sin(fn(dX/180.f)), 0);
-	glm::fquat R = rX*rY;
+	fquat rX(cos(fn(dY/180.f)), sin(fn(dY/180.f)), 0, 0);
+	fquat rY(cos(fn(dX/180.f)), 0, sin(fn(dX/180.f)), 0);
+	fquat R = rX*rY;
     
 	s_Inst.lX = x;
 	s_Inst.lY = y;
@@ -58,4 +60,9 @@ lY(-1)  // so that the initial dX = dY = 0
 
 /*static*/ const MouseManager * MouseManager::Instance() {
 	return (const MouseManager *)&s_Inst;
+}
+
+/*static*/ void MouseManager::Reset(int newx, int newY){
+	s_Inst.lX = newx;
+	s_Inst.lY = newY;
 }

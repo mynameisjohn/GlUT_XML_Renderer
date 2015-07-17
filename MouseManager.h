@@ -6,6 +6,7 @@ class MouseManager{
 public:
 	static void Init();
 	static void HandleMouseBtn(int button, int state, int x, int y);
+	static void Reset(int newX, int newY);
     static glm::fquat HandleMouseMove_B(int x, int y);
     static glm::fquat HandleMouseMove_P(int x, int y);
 	static const MouseManager * Instance();

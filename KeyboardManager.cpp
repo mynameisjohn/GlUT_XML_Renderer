@@ -18,6 +18,7 @@ vKeyState(512, false)
 /*static*/ vec3 KeyboardManager::HandleKey(unsigned char key, int x, int y){
 	// Wat do?
 	s_Inst.vKeyState[key] = !s_Inst.vKeyState[key];
+	return vec3();
 }
 
 /*static*/ const KeyboardManager * KeyboardManager::Instance(){
