@@ -45,7 +45,7 @@ vec3 Camera::getView(){
 
 mat4 Camera::getMat(){
     // I have no idea why this works
-    return m_m4Proj*glm::mat4_cast(m_qRot)*glm::translate(m_v3Pos);//*glm::translate(-m_v3Pos);
+    return m_m4Proj*glm::mat4_cast(m_qRot)*glm::translate(m_v3Pos);
 }
 
 void Camera::rotate(fquat Q){
@@ -53,11 +53,8 @@ void Camera::rotate(fquat Q){
 }
 
 void Camera::translate(vec3 T){
-    // The deal here is to take a cartesian translation
-    // and make it in our space (front of the camera is +z?)
-    // Not gonna lie I don't understand why its the inverse
     // The rotation applied to the camera is the inverse
     // of that applied to the world... ? Whatever, it's expensive
-    vec3 Tp(glm::mat4_cast(glm::inverse(m_qRot))*vec4(T,1));
+	vec3 Tp(glm::mat4_cast(glm::inverse(m_qRot))*vec4(T, 1));
     m_v3Pos += Tp;
 }
