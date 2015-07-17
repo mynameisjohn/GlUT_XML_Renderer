@@ -51,8 +51,7 @@ mat4 Camera::getMat(){
 void Camera::rotate(fquat Q){
     m_qRot = glm::normalize(Q * m_qRot);
 }
-#include <iostream>
-using namespace std;
+
 void Camera::translate(vec3 T){
     // The deal here is to take a cartesian translation
     // and make it in our space (front of the camera is +z?)
