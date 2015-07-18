@@ -44,7 +44,7 @@ void MouseMovementFunc(int x, int y, int btn = 0){
 	// Press alt to actually move the mouse
 	bool tX = (x < thr) || (WIDTH - x < thr);
 	bool tY = (y < thr) || (HEIGHT - y < thr);
-	bool noMove = KeyboardManager::GetKeyState('y'); // Apple GLUT doesn't have this... SDL2?
+	bool noMove = KeyboardManager::GetKeyState(GLUT_KEY_ALT_L); // Apple GLUT doesn't have this... SDL2?
     
 
 	if ((tX || tY) && !noMove){
@@ -65,8 +65,21 @@ void MousePassiveFunc(int x, int y){
 
 // Tell keyboard manager, handle basic stuff
 void KeyboardFunc(unsigned char k, int x, int y){
+	const float T(5.f);
+	glm::vec3 v(0);
+
 	// Tell keyboard manager and move if needed
-    g_Camera.translate(KeyboardManager::HandleKey(k, x, y));
+	   if (k == 'w')
+	       v.z -= T;
+	   if (k == 'a')
+	       v.x -= T;
+	   if (k == 's')
+	       v.z += T;
+	   if (k == 'd')
+	       v.x += T;
+    g_Camera.translate(/*KeyboardManager::HandleKey(k, x, y)*/v);
+
+	KeyboardManager::HandleKey(k, x, y);
 }
 
 // Val can be the case of several registered callbacks... but I don't care
@@ -90,11 +103,12 @@ void initGL(int argc, char ** argv){
 	glutInitWindowPosition(250, 0);
 	glutCreateWindow("GLUT XML Renderer");
 
-	// Callbacks
+	// Callbacks (I gotta move to SDL2 this weekend)
 	glutDisplayFunc(redraw);
 	glutMouseFunc(MouseBtnFunc);
 	glutMotionFunc(MouseMotionFunc);
 	glutPassiveMotionFunc(MousePassiveFunc);
+	glutKeyboardUpFunc(KeyboardFunc); // Ugh
 	glutKeyboardFunc(KeyboardFunc);
 	glutTimerFunc(FPS / 1000.f, onTimer, 0);
 

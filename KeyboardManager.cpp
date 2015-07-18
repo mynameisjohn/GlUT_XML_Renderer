@@ -18,16 +18,17 @@ vKeyState(512, false)
 /*static*/ vec3 KeyboardManager::HandleKey(unsigned char key, int x, int y){
     const float T(5.f);
     vec3 v(0);
-    
-	s_Inst.vKeyState[key] = !s_Inst.vKeyState[key];
-    if (GetKeyState('w'))
-        v.z-=T;
-    if (GetKeyState('a'))
-        v.x+=T;
-    if (GetKeyState('s'))
-        v.z-=T;
-    if (GetKeyState('d'))
-        v.x+=T;
+
+	// This logic is ok. but glut is not
+	//s_Inst.vKeyState[key] = !s_Inst.vKeyState[key];
+ //   if (GetKeyState('w'))
+ //       v.z -= T;
+ //   if (GetKeyState('a'))
+ //       v.x -= T;
+ //   if (GetKeyState('s'))
+ //       v.z += T;
+ //   if (GetKeyState('d'))
+ //       v.x += T;
     
 	return v;
 }
